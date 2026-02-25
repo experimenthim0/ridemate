@@ -18,12 +18,9 @@ const Home = () => {
     setLoading(true);
     try {
       // Public endpoint — no auth needed
-      const params = new URLSearchParams();
-      if (filterFrom) params.append("from", filterFrom);
-      if (filterTo) params.append("to", filterTo);
-      const { data } = await axios.get(
-        `/api/rides/active?${params.toString()}`,
-      );
+      const { data } = await API.get("/rides/active", {
+        params: { from: filterFrom, to: filterTo },
+      });
       setRides(data);
     } catch (err) {
       console.error(err);
@@ -259,9 +256,7 @@ const Home = () => {
               </div>
             </div>
           </div>
-         
         </section>
-        
       )}
 
       {/* Active Rides */}
@@ -312,9 +307,9 @@ const Home = () => {
         )}
       </section>
 
-       <section>
-            <Authorised />
-          </section>
+      <section>
+        <Authorised />
+      </section>
     </div>
   );
 };

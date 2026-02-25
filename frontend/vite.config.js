@@ -6,11 +6,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-      },
-    },
+    host: "0.0.0.0",
+    allowedHosts: [
+      "localhost",
+      "127.0.0.1",
+      "::1",
+      "*.vercel.app",
+      "www.nikhim.me",
+      "*.nikhim.me",
+    ],
   },
 });

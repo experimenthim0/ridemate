@@ -1,0 +1,72 @@
+import { Link } from "react-router-dom";
+
+const Footer = () => {
+  return (
+    <footer className="bg-auto-black text-gray-400 mt-auto">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">🛺</span>
+              <span className="text-lg font-bold text-primary font-[var(--font-heading)]">
+                RideMate
+              </span>
+            </div>
+            <p className="text-sm leading-relaxed">
+              Auto Seat Booking Platform for NITJ. Connecting students with
+              approved auto drivers for safe and convenient rides.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-3 font-[var(--font-heading)]">
+              Quick Links
+            </h4>
+            <div className="flex flex-col gap-2">
+              <Link
+                to="/privacy-policy"
+                className="text-gray-400 hover:text-primary transition-colors text-sm no-underline"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                to="/terms-conditions"
+                className="text-gray-400 hover:text-primary transition-colors text-sm no-underline"
+              >
+                Terms & Conditions
+              </Link>
+              <Link
+                to="/driver-consent"
+                className="text-gray-400 hover:text-primary transition-colors text-sm no-underline"
+              >
+                Driver Consent
+              </Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-3 font-[var(--font-heading)]">
+              Contact
+            </h4>
+            <p className="text-sm">
+              <i className="ri-mail-line mr-2"></i>contact.nikhim@gmail.com
+            </p>
+            
+          </div>
+        </div>
+
+        <div className="border-t border-gray-700 mt-6 pt-4">
+          <p className="text-xs text-center text-gray-500">
+            ⚠️ Disclaimer: This platform only facilitates seat coordination.
+            Travel responsibility lies between driver and passenger.
+          </p>
+          <p className="text-xs text-center text-gray-600 mt-2">
+            &copy; {new Date().getFullYear()} RideMate. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;

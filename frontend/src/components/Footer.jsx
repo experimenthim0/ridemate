@@ -60,8 +60,8 @@ const Footer = () => {
             ⚠️ Disclaimer: This platform only facilitates seat coordination.
             Travel responsibility lies between driver and passenger.
           </p>
-          <p className="text-xs text-center text-gray-600 mt-2">
-            &copy; {new Date().getFullYear()} RideMate. All rights reserved.
+          <p className="text-xs text-center text-gray-500 mt-2">
+            &copy; {new Date().getFullYear()} RideMate | Developed By <span className="text-white font-semibold underline"><a href="https://nikhim.me" target="_blank">Nikhil</a></span>
           </p>
         </div>
       </div>

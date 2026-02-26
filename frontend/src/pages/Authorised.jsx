@@ -11,7 +11,7 @@ function Authorised() {
             </p>
             <h1 class="table-title text-black text-3xl font-bold leading-tight"></h1>
           </div>
-          <div class="bg-black rounded-xl px-4 py-2 text-center">
+          {/* <div class="bg-black rounded-xl px-4 py-2 text-center">
             <p class="text-yellow-400 text-xs font-semibold tracking-widest">
               LOCATION
             </p>
@@ -20,7 +20,7 @@ function Authorised() {
               <br />
               near Main Gate
             </p>
-          </div>
+          </div> */}
         </div>
 
         <div class="overflow-hidden rounded-b-2xl shadow-2xl border border-gray-700">

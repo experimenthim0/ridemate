@@ -288,7 +288,7 @@ const Home = () => {
       )}
 
       {/* Active Rides */}
-      <section className="py-10 max-w-7xl mx-auto px-4">
+      <section className="py-15 max-w-7xl mx-auto mb-5 px-4">
         {loading ? (
           <Loader text="Finding rides..." />
         ) : rides.length === 0 ? (
@@ -335,7 +335,7 @@ const Home = () => {
         )}
       </section>
 
-      <section>
+      <section className="mb-10">
         <Authorised />
       </section>
     </div>

@@ -151,6 +151,33 @@ const unblockStudent = async (req, res) => {
 // Get all rides
 const getAllRides = async (req, res) => {
   try {
+    // Check for rides to auto-deactivate (e.g. 1 hour after departure time)
+    const ridesToCheck = await Ride.find({ status: "active" });
+    const now = new Date();
+
+    let updatedCount = 0;
+    for (const ride of ridesToCheck) {
+      if (ride.departure_date && ride.departure_time) {
+        // Parse the departure date and time
+        // Note: Assuming departure_date is "YYYY-MM-DD" and time is "HH:MM"
+        // Also assuming the server timezone matches the local time being entered
+        const departureDateTimeString = `${ride.departure_date}T${ride.departure_time}`;
+        const departureDateTime = new Date(departureDateTimeString);
+
+        // If valid date and it's 1 hour past departure time
+        if (!isNaN(departureDateTime.getTime())) {
+          const oneHourAfter = new Date(
+            departureDateTime.getTime() + 60 * 60 * 1000,
+          );
+          if (now > oneHourAfter) {
+            ride.status = "completed";
+            await ride.save();
+            updatedCount++;
+          }
+        }
+      }
+    }
+
     const rides = await Ride.find()
       .populate("driver_id", "name auto_number phone")
       .populate("student_id", "name phone")
@@ -206,6 +233,41 @@ const getFakeRideReports = async (req, res) => {
   }
 };
 
+// Deactivate a ride (Admin)
+const deactivateRideAdmin = async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id);
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    if (ride.status === "completed") {
+      return res
+        .status(400)
+        .json({ message: "Ride is already deactivated/completed" });
+    }
+
+    ride.status = "completed";
+    await ride.save();
+
+    res.json({ message: "Ride deactivated successfully by Admin", ride });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete all cancelled bookings (Admin)
+const deleteCancelledBookings = async (req, res) => {
+  try {
+    const result = await Booking.deleteMany({ status: "cancelled" });
+    res.json({
+      message: `Successfully deleted ${result.deletedCount} cancelled bookings.`,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get dashboard stats
 const getDashboardStats = async (req, res) => {
   try {
@@ -249,4 +311,6 @@ module.exports = {
   resolveComplaint,
   getDashboardStats,
   getFakeRideReports,
+  deactivateRideAdmin,
+  deleteCancelledBookings,
 };

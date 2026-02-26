@@ -13,6 +13,8 @@ const {
   resolveComplaint,
   getDashboardStats,
   getFakeRideReports,
+  deactivateRideAdmin,
+  deleteCancelledBookings,
 } = require("../controllers/adminController");
 
 // All routes are protected + admin only
@@ -26,6 +28,8 @@ router.put("/drivers/:id", updateDriver);
 router.get("/students", getStudents);
 router.put("/students/:id/unblock", unblockStudent);
 router.get("/rides", getAllRides);
+router.put("/rides/:id/deactivate", deactivateRideAdmin);
+router.delete("/bookings/cancelled", deleteCancelledBookings);
 router.get("/fake-ride-reports", getFakeRideReports);
 router.get("/complaints", getComplaints);
 router.put("/complaints/:id", resolveComplaint);

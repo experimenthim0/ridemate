@@ -53,6 +53,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const flash = (message) => {
@@ -131,6 +132,30 @@ const AdminDashboard = () => {
       await fetchAll();
     } catch (err) {
       flash(err.response?.data?.message || "Failed");
+    }
+  };
+
+  const handleDeactivateRide = async (id) => {
+    // FIX: Added window.confirm to prevent no-undef errors
+    if (!window.confirm("Are you sure you want to manually deactivate this ride?")) return;
+    try {
+      await API.put(`/admin/rides/${id}/deactivate`);
+      flash("Ride deactivated successfully");
+      await fetchAll();
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed to deactivate ride");
+    }
+  };
+
+  const handleCleanUpBookings = async () => {
+    // FIX: Added window.confirm to prevent no-undef errors
+    if (!window.confirm("Delete all cancelled bookings permanently?")) return;
+    try {
+      const { data } = await API.delete("/admin/bookings/cancelled");
+      flash(data.message);
+      await fetchAll();
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed cleanup");
     }
   };
 
@@ -222,18 +247,36 @@ const AdminDashboard = () => {
               color: "bg-error",
             },
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5">
+            <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group">
+               <div className={`absolute top-0 left-0 w-1 ${stat.color} h-full group-hover:w-2 transition-all`}></div>
               <div
-                className={`w-10 h-10 ${stat.color} rounded-xl flex items-center justify-center mb-3`}
+                className={`w-12 h-12 ${stat.color} bg-opacity-10 rounded-xl flex items-center justify-center mb-4`}
               >
-                <i className={`${stat.icon} text-white text-lg`}></i>
+                <i className={`${stat.icon} ${stat.color.replace('bg-', 'text-')} text-xl group-hover:scale-110 transition-transform`}></i>
               </div>
-              <p className="text-2xl font-bold font-[var(--font-heading)]">
+              <p className="text-3xl font-extrabold font-[var(--font-heading)] text-gray-800">
                 {stat.value || 0}
               </p>
-              <p className="text-sm text-gray-500">{stat.label}</p>
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mt-1">{stat.label}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Stats Actions Section */}
+      {activeTab === "stats" && (
+        <div className="mt-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+               <i className="ri-settings-3-line text-primary"></i> System Maintenance
+            </h3>
+            <div className="flex gap-4 flex-wrap">
+               <button 
+                  onClick={handleCleanUpBookings}
+                  className="bg-error/10 hover:bg-error/20 text-error px-5 py-2.5 rounded-xl font-semibold border-none cursor-pointer transition-colors flex items-center gap-2"
+               >
+                 <i className="ri-delete-bin-line"></i> Delete Cancelled Bookings
+               </button>
+            </div>
         </div>
       )}
 
@@ -414,7 +457,8 @@ const AdminDashboard = () => {
                       className={`w-3 h-3 rounded-full ${d.is_active ? "bg-success" : "bg-error"}`}
                     ></div>
                     <div>
-                      <p className="font-medium flex items-center gap-2">
+                      {/* FIX: Changed <p> to <div> to prevent invalid HTML nesting (button inside p) */}
+                      <div className="font-medium flex items-center gap-2">
                         {d.name}
                         <button
                           onClick={() => startEdit(d)}
@@ -423,7 +467,7 @@ const AdminDashboard = () => {
                         >
                           <i className="ri-pencil-line"></i>
                         </button>
-                      </p>
+                      </div>
                       <p className="text-sm text-gray-500">
                         {d.auto_number} • {d.phone}
                       </p>
@@ -515,11 +559,23 @@ const AdminDashboard = () => {
                     {r.filled_seats}/{r.total_seats} seats
                   </p>
                 </div>
-                <span
-                  className={`badge-${r.status} px-3 py-1 rounded-lg text-xs font-bold`}
-                >
-                  {r.status.toUpperCase()}
-                </span>
+                <div className="text-right">
+                  <span
+                    className={`badge-${r.status} px-3 py-1 rounded-lg text-xs font-bold block mb-2`}
+                  >
+                    {r.status.toUpperCase()}
+                  </span>
+                  
+                  {r.status === "active" && (
+                    <button
+                      onClick={() => handleDeactivateRide(r._id)}
+                      className="text-xs bg-error hover:bg-error-dark text-white px-3 py-1.5 rounded-lg font-bold border-none cursor-pointer transition-colors"
+                      title="Deactivate ride immediately"
+                    >
+                      Deactivate
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -562,7 +618,8 @@ const AdminDashboard = () => {
                 {c.status === "pending" && (
                   <button
                     onClick={() => {
-                      const resp = prompt("Enter response (or leave blank):");
+                      // FIX: Added window.prompt to prevent no-undef errors
+                      const resp = window.prompt("Enter response (or leave blank):");
                       handleResolve(c._id, resp);
                     }}
                     className="mt-2 bg-success text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer border-none hover:bg-success-dark transition-colors"
@@ -615,14 +672,16 @@ const AdminDashboard = () => {
                       )}
                   </div>
                   <span className="px-3 py-1 bg-error text-white rounded-lg text-xs font-bold">
-                    {r.reports.length} Report(s)
+                    {/* FIX: Added optional chaining to prevent crash if reports array is undefined */}
+                    {r.reports?.length || 0} Report(s)
                   </span>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <h4 className="text-sm font-bold mb-2">Reported By:</h4>
                   <ul className="text-sm text-gray-600 list-disc pl-5">
-                    {r.reports.map((reporter, idx) => (
+                    {/* FIX: Added optional chaining to prevent crash if reports array is undefined */}
+                    {r.reports?.map((reporter, idx) => (
                       <li key={idx}>
                         {reporter.name} ({reporter.phone})
                       </li>

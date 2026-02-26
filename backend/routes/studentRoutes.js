@@ -14,6 +14,7 @@ const {
   postRideMessage,
   getCreatedRides,
   updateCreatedRide,
+  deactivateRideShare,
 } = require("../controllers/studentController");
 
 // All routes are protected + student only

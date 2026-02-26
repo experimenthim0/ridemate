@@ -19,6 +19,7 @@ import Complaints from "./pages/Complaints";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import DriverConsent from "./pages/DriverConsent";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -88,6 +89,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />

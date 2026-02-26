@@ -37,6 +37,34 @@ const Home = () => {
     fetchRides();
   };
 
+
+
+  const Lines = [
+    "Abhi koi auto available nahi hai bhai!",
+    "No autos nearby at the moment.",
+    "No active rides available right now.",
+    "Thoda ruk jao, auto aa hi raha hoga.",
+    "All drivers are currently busy.",
+    "Aaj auto strike pe hain shayad!",
+    "Looks like everything is booked.",
+    "Lagta h saare drivers chai ☕ peene gaye ",
+    "Waiting for drivers to come online.",
+    
+    "Try refreshing the page.",
+    "New rides appear every few minutes.",
+    "Stay tuned 🚕",
+    "Lagta hai sabhi rides already booked hain!",
+    "Please wait while drivers connect."
+  ];
+
+  
+
+  const randomLine =
+    Lines[Math.floor(Math.random() * Lines.length)];
+
+ 
+
+
   // Separate rides to/from college
   const toCollegeRides = rides.filter((r) => r.to === "College");
   const otherRides = rides.filter((r) => r.to !== "College");
@@ -155,12 +183,12 @@ const Home = () => {
           </div>
         </div> */}
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-          <div className="text-6xl mb-3">🛺</div>
+          <div className="mb-3 flex justify-center items-center"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-30 h-30"/></div>
           <h1 className="text-4xl md:text-5xl font-extrabold mb-3 font-(--font-heading)">
             <span className="text-primary">Ride</span>Mate
           </h1>
           <p className="text-lg text-gray-300 mb-6 max-w-xl mx-auto">
-            Auto Seat Booking Platform For NITJ — Book your seat in approved
+            Auto Seat Booking Platform For NITJ — Book your seat in college approved
             autos.
           </p>
 
@@ -228,8 +256,8 @@ const Home = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center p-6 bg-gray-50 rounded-2xl">
-                <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <i className="ri-search-line text-2xl text-auto-black"></i>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+           <img width="64" height="64" src="https://img.icons8.com/glyph-neue/64/point-objects.png" alt="point-objects"/>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Find a Ride</h3>
                 <p className="text-gray-500 text-sm">
@@ -237,8 +265,8 @@ const Home = () => {
                 </p>
               </div>
               <div className="text-center p-6 bg-gray-50 rounded-2xl">
-                <div className="w-16 h-16 bg-success rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <i className="ri-bookmark-line text-2xl text-white"></i>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <img width="48" height="48" src="https://img.icons8.com/color-glass/48/booking.png" alt="booking"/>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Book Your Seat</h3>
                 <p className="text-gray-500 text-sm">
@@ -246,8 +274,8 @@ const Home = () => {
                 </p>
               </div>
               <div className="text-center p-6 bg-gray-50 rounded-2xl">
-                <div className="w-16 h-16 bg-info rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <i className="ri-road-map-line text-2xl text-white"></i>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <img width="94" height="94" src="https://img.icons8.com/3d-fluency/94/map-marker.png" alt="map-marker"/>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Enjoy the Ride</h3>
                 <p className="text-gray-500 text-sm">
@@ -265,9 +293,9 @@ const Home = () => {
           <Loader text="Finding rides..." />
         ) : rides.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl">
-            <div className="text-6xl mb-4">🛺</div>
-            <p className="text-gray-500 text-lg">
-              No active rides available right now.
+            <div className="flex justify-center items-center mb-4"><img src="/icons8-auto-rickshaw-94.png" alt="" /></div>
+            <p className="text-gray-700 text-lg font-semibold font-(--font-heading)">
+             {randomLine}
             </p>
             <p className="text-gray-400 text-sm mt-1">Check back soon!</p>
           </div>

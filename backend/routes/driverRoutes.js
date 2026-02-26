@@ -15,6 +15,7 @@ const {
   getBlockedStudents,
   getProfile,
   updateProfile,
+  updateRideTime,
 } = require("../controllers/driverController");
 
 // All routes are protected + driver only
@@ -23,6 +24,7 @@ router.use(protect, authorize("driver"));
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 router.post("/rides", createRide);
+router.put("/rides/:id/time", updateRideTime);
 router.get("/rides", getMyRides);
 router.put("/rides/:id/end", endRide);
 router.put("/rides/:id/fill-seat", fillSeat);

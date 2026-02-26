@@ -159,6 +159,33 @@ const endRide = async (req, res) => {
   }
 };
 
+// Update ride time
+const updateRideTime = async (req, res) => {
+  try {
+    const { departure_time } = req.body;
+    const ride = await Ride.findById(req.params.id);
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    if (ride.driver_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (ride.status !== "active") {
+      return res.status(400).json({ message: "Cannot edit an inactive ride" });
+    }
+
+    ride.departure_time = departure_time || "";
+    await ride.save();
+
+    res.json({ message: "Ride time updated successfully", ride });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get driver's rides
 const getMyRides = async (req, res) => {
   try {
@@ -385,4 +412,5 @@ module.exports = {
   getBlockedStudents,
   getProfile,
   updateProfile,
+  updateRideTime,
 };

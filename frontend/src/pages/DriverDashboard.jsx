@@ -19,6 +19,8 @@ const DriverDashboard = () => {
   const [selectedRide, setSelectedRide] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [blocked, setBlocked] = useState([]);
+  const [editingTime, setEditingTime] = useState(null);
+  const [newTime, setNewTime] = useState("");
 
   const fetchRides = async () => {
     try {
@@ -140,6 +142,19 @@ const DriverDashboard = () => {
       flash("Student blocked");
       await fetchBlocked();
       if (selectedRide) await fetchRideBookings(selectedRide);
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed");
+    }
+  };
+
+  const handleEditTime = async (rideId) => {
+    try {
+      await API.put(`/driver/rides/${rideId}/time`, {
+        departure_time: newTime,
+      });
+      flash("Ride time updated!");
+      setEditingTime(null);
+      await fetchRides();
     } catch (err) {
       flash(err.response?.data?.message || "Failed");
     }
@@ -419,6 +434,15 @@ const DriverDashboard = () => {
                           </button>
                         )}
                         <button
+                          onClick={() => {
+                            setEditingTime(ride._id);
+                            setNewTime(ride.departure_time || "");
+                          }}
+                          className="bg-primary hover:bg-primary-dark text-auto-black px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
+                        >
+                          <i className="ri-time-line mr-1"></i>Edit Time
+                        </button>
+                        <button
                           onClick={() => handleEndRide(ride._id)}
                           className="bg-error hover:bg-error-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
                         >
@@ -427,6 +451,29 @@ const DriverDashboard = () => {
                       </>
                     )}
                   </div>
+
+                  {editingTime === ride._id && (
+                    <div className="mt-3 flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                      <input
+                        type="time"
+                        value={newTime}
+                        onChange={(e) => setNewTime(e.target.value)}
+                        className="px-3 py-1.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-primary text-sm"
+                      />
+                      <button
+                        onClick={() => handleEditTime(ride._id)}
+                        className="bg-success text-white px-4 py-1.5 rounded-lg text-sm font-bold cursor-pointer border-none"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingTime(null)}
+                        className="bg-gray-300 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer border-none"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
 
                   {/* Bookings panel */}
                   {selectedRide === ride._id && (

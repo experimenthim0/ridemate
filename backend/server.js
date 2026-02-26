@@ -37,13 +37,13 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Auto-delete completed rides older than 48 hours
+// Auto-delete completed rides older than 12 hours
 const Ride = require("./models/Ride");
 const Booking = require("./models/Booking");
 
 const cleanupOldRides = async () => {
   try {
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000);
     const oldRides = await Ride.find({
       status: "completed",
       updatedAt: { $lt: cutoff },

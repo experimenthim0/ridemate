@@ -5,7 +5,7 @@ const Loader = ({ text = "Loading..." }) => {
         {/* Road */}
         <div className="absolute bottom-2 left-0 right-0 h-1 bg-gray-300 rounded-full"></div>
         {/* Auto Rickshaw */}
-        <div className="auto-loader text-5xl absolute bottom-3">🛺</div>
+        <div className="auto-loader text-5xl absolute bottom-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-10 h-10"/></div>
       </div>
       {/* Tyre tracks */}
       <div className="flex gap-1 mb-3">

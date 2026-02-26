@@ -55,13 +55,42 @@ const RideDetails = () => {
   };
 
   const handleReport = async () => {
-    if (!confirm("Report this as a fake ride? The creator may be banned."))
+    if (!window.confirm("Report this as a fake ride? The creator may be banned."))
       return;
     try {
       const { data } = await API.post(`/student/ride/${id}/report`);
       setMsg(data.message);
     } catch (err) {
       setMsg(err.response?.data?.message || "Report failed");
+    }
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const timeString = ride.departure_time ? ` at ${ride.departure_time}` : "";
+    const dateString = ride.departure_date ? ` on ${ride.departure_date}` : "";
+    const shareText = `Check out this ride from ${ride.from} to ${ride.to}${dateString}${timeString}. Book your seat here:`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join my ride!",
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        // User cancelled or share failed silently
+        console.error("Error sharing:", err);
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        setMsg("Ride details copied to clipboard!");
+        setTimeout(() => setMsg(""), 3000);
+      } catch (err) {
+        setMsg("Failed to copy link.");
+      }
     }
   };
 
@@ -87,12 +116,22 @@ const RideDetails = () => {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="text-gray-500 hover:text-gray-700 mb-4 text-sm cursor-pointer bg-transparent border-none"
-      >
-        <i className="ri-arrow-left-line mr-1"></i>Back
-      </button>
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-gray-500 hover:text-gray-700 text-sm cursor-pointer bg-transparent border-none flex items-center"
+        >
+          <i className="ri-arrow-left-line mr-1"></i>Back
+        </button>
+        
+        {/* Share Button Added Here */}
+        <button
+          onClick={handleShare}
+          className="text-yellow-500 hover:text-primary-dark font-medium text-sm cursor-pointer bg-transparent border-none flex items-center transition-colors"
+        >
+          <i className="ri-share-forward-line mr-1"></i>Share Ride
+        </button>
+      </div>
 
       {msg && (
         <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium bg-info/10 text-info">

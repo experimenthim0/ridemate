@@ -14,6 +14,7 @@ export default defineConfig({
       "*.vercel.app",
       "www.nikhim.me",
       "*.nikhim.me",
+      "10.249.157.110"
     ],
   },
 });

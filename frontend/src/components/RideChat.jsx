@@ -107,7 +107,7 @@ const RideChat = ({ rideId, currentUserId, canChat }) => {
               <div
                 className={`px-3 py-2 rounded-2xl text-sm max-w-[75%] break-words ${
                   isMine
-                    ? "bg-primary text-auto-black rounded-br-sm"
+                    ? "bg-gray-200 text-auto-black rounded-br-sm"
                     : "bg-gray-100 text-gray-800 rounded-bl-sm"
                 }`}
               >

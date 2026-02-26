@@ -29,6 +29,23 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "RideMate API is running" });
 });
 
+// Public Stats for Footer
+app.get("/api/public-stats", async (req, res) => {
+  try {
+    const Driver = require("./models/Driver");
+    const Student = require("./models/Student");
+    const totalDrivers = await Driver.countDocuments();
+    const totalStudents = await Student.countDocuments();
+
+    res.json({
+      totalUsers: totalDrivers + totalStudents,
+      liveStudents: totalStudents,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching stats" });
+  }
+});
+
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);

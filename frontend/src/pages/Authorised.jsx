@@ -27,9 +27,7 @@ function Authorised() {
           <table class="w-full border-collapse text-sm">
             <thead>
               <tr class="bg-green-700">
-                <th class="header-cell text-white text-center py-3 px-4 font-bold text-xs uppercase tracking-widest w-14">
-                  Sr.
-                </th>
+               
                 <th class="header-cell text-white text-left py-3 px-5 font-bold text-xs uppercase tracking-widest">
                   Name of Driver
                 </th>
@@ -43,9 +41,7 @@ function Authorised() {
             </thead>
             <tbody>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-800 text-gray-400 font-semibold">
-                  1.
-                </td>
+               
                 <td class="py-3 px-5 bg-gray-800 text-white font-medium">
                   Mr. Buta Ram
                 </td>
@@ -59,9 +55,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-900 text-gray-400 font-semibold">
-                  2.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-900 text-white font-medium">
                   Mr. Dalip Kumar
                 </td>
@@ -75,9 +69,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-800 text-gray-400 font-semibold">
-                  3.
-                </td>
+               
                 <td class="py-3 px-5 bg-gray-800 text-white font-medium">
                   Mr. Rajesh Kumar Maurya
                 </td>
@@ -91,9 +83,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-900 text-gray-400 font-semibold">
-                  4.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-900 text-white font-medium">
                   Mr. Talwinder Singh
                 </td>
@@ -107,9 +97,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-800 text-gray-400 font-semibold">
-                  5.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-800 text-white font-medium">
                   Mr. Deepak Mishra
                 </td>
@@ -124,9 +112,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-900 text-gray-400 font-semibold">
-                  6.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-900 text-white font-medium">
                   Mr. Balwinder
                 </td>
@@ -140,9 +126,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-800 text-gray-400 font-semibold">
-                  7.
-                </td>
+               
                 <td class="py-3 px-5 bg-gray-800 text-white font-medium">
                   Mr. Lakhwinder Singh
                 </td>
@@ -156,9 +140,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-900 text-gray-400 font-semibold">
-                  8.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-900 text-white font-medium">
                   Mr. RajKumar
                 </td>
@@ -172,9 +154,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-800 text-gray-400 font-semibold">
-                  9.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-800 text-white font-medium">
                   Mr. Rajinder Kumar
                 </td>
@@ -188,9 +168,7 @@ function Authorised() {
                 </td>
               </tr>
               <tr>
-                <td class="text-center py-3 px-4 bg-gray-900 text-gray-400 font-semibold">
-                  10.
-                </td>
+                
                 <td class="py-3 px-5 bg-gray-900 text-white font-medium">
                   Mr. Prashant Sircar
                 </td>

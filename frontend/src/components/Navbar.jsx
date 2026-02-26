@@ -76,7 +76,7 @@ const Navbar = () => {
                 <Link
                   to="/admin-dashboard"
                   className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-                >
+                ><i className="ri-dashboard-line mr-1"></i>
                   Dashboard
                 </Link>
               )}

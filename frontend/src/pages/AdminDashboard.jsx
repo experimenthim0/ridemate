@@ -207,7 +207,7 @@ const AdminDashboard = () => {
             {
               label: "Active Drivers",
               value: stats.activeDrivers,
-              icon: "ri-checkbox-circle-line",
+              icon: "ri-steering-2-line",
               color: "bg-success",
             },
             {
@@ -225,13 +225,13 @@ const AdminDashboard = () => {
             {
               label: "Total Rides",
               value: stats.totalRides,
-              icon: "ri-road-map-line",
+              icon: "ri-route-line",
               color: "bg-primary",
             },
             {
               label: "Active Rides",
               value: stats.activeRides,
-              icon: "ri-play-circle-line",
+              icon: "ri-map-line",
               color: "bg-success",
             },
             {
@@ -252,7 +252,7 @@ const AdminDashboard = () => {
               <div
                 className={`w-12 h-12 ${stat.color} bg-opacity-10 rounded-xl flex items-center justify-center mb-4`}
               >
-                <i className={`${stat.icon} ${stat.color.replace('bg-', 'text-')} text-xl group-hover:scale-110 transition-transform`}></i>
+                <i className={`${stat.icon} ${stat.color} text-white text-xl group-hover:scale-110 transition-transform`}></i>
               </div>
               <p className="text-3xl font-extrabold font-[var(--font-heading)] text-gray-800">
                 {stat.value || 0}

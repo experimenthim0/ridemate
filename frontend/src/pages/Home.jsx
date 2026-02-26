@@ -432,7 +432,7 @@ const Home = () => {
 
         {/* Ridesharing */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3">🛺</div>
+          <div className="text-3xl mb-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-20 h-18"/></div>
           <h3 className="font-bold text-gray-800 mb-1">Student Ridesharing</h3>
           <p className="text-gray-500 text-sm">Students can create up to 2 rides per day. Your name is shown on the ride card. Booked students see your phone/email in ride details.</p>
           <span className="inline-block mt-3 text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-1 rounded-lg">Max 2/day</span>
@@ -440,7 +440,8 @@ const Home = () => {
 
         {/* Live Chat */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3">💬</div>
+          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/sad-chat-3d-icon-png-download-11860445.png" alt="" className="w-20 h-18"/>
+              </div>
           <h3 className="font-bold text-gray-800 mb-1">Live Ride Chat</h3>
           <p className="text-gray-500 text-sm">Booked students and the ride creator can chat in real time. Only text and emojis. Messages auto-expire in 3 hours.</p>
           <span className="inline-block mt-3 text-xs font-bold bg-blue-400 text-white px-2.5 py-1 rounded-lg">Booked riders only</span>
@@ -448,7 +449,7 @@ const Home = () => {
 
         {/* Report */}
         <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3">🚨</div>
+          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/alert-sign-3d-icon-png-download-11009210.png" alt="" className="w-20 h-18"/></div>
           <h3 className="font-bold text-gray-800 mb-1">Fake Ride Reports</h3>
           <p className="text-gray-500 text-sm">2–3 reports on a ride = 7-day posting ban. Repeated abuse (2–3 bans/month) = permanent block. Keeps the platform safe.</p>
           <span className="inline-block mt-3 text-xs font-bold bg-red-400 text-white px-2.5 py-1 rounded-lg">Auto-moderation</span>
@@ -456,7 +457,7 @@ const Home = () => {
 
         {/* Update Ride */}
         <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3">✏️</div>
+          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/clipboard-and-pencil-3d-icon-png-download-7250815.png" alt="" className="w-20 h-16"/></div>
           <h3 className="font-bold text-gray-800 mb-1">Manage Your Ride</h3>
           <p className="text-gray-500 text-sm">Edit departure time, seat count, or cancel your posted ride — just like a driver managing a trip in real time.</p>
           <span className="inline-block mt-3 text-xs font-bold bg-green-500 text-white px-2.5 py-1 rounded-lg">Creator controls</span>
@@ -470,6 +471,30 @@ const Home = () => {
       <section className="mb-10">
         <Authorised />
       </section>
+
+
+
+
+
+    <div className="max-w-2xl mx-auto mb-6 p-6 bg-yellow-50 border border-yellow-300 rounded-xl shadow-sm space-y-4">
+  <h3 className="flex items-center gap-2 text-lg font-bold text-yellow-800">
+    <i className="ri-alert-line text-yellow-600"></i>
+    Important Notice
+  </h3>
+
+  <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
+    <li>
+      The app is still in development, so you may encounter bugs. Please report them to 
+      <span className="text-blue-600 font-semibold"> contact.nikhim@gmail.com</span>.
+    </li>
+    <li>
+      Do not create fake rides — this will result in your account being banned.
+    </li>
+    <li>
+      Sometimes rides may not be available due to a low or inactive user base. Please cooperate by creating rides whenever you travel.
+    </li>
+  </ul>
+</div>
     </div>
   );
 };

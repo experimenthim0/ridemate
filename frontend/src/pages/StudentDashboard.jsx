@@ -145,6 +145,18 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleDeactivateRide = async (rideId) => {
+    if (!confirm("Are you sure you want to deactivate this ride?")) return;
+    try {
+      const { data } = await API.put(`/student/ride/${rideId}/deactivate`);
+      flash(data.message);
+      await fetchRides();
+      await fetchCreatedRides();
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed to deactivate ride");
+    }
+  };
+
   const statusLabel = {
     pending: "Pending Payment",
     pending_confirmation: "Awaiting Confirmation",
@@ -229,7 +241,7 @@ const StudentDashboard = () => {
 
           {rides.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl">
-              <div className="text-5xl mb-3">🛺</div>
+              <div className="text-5xl mb-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-20 h-20"/></div>
               <p className="text-gray-500">No active rides available</p>
             </div>
           ) : (
@@ -239,9 +251,19 @@ const StudentDashboard = () => {
                   (ride.filled_seats / ride.total_seats) * 100;
                 const isFull = ride.filled_seats >= ride.total_seats;
                 return (
-                  <div key={ride._id} className="bg-white rounded-2xl p-5">
+                  <div
+                    key={ride._id}
+                    className="bg-white rounded-2xl p-5 relative overflow-hidden"
+                  >
+                    {ride.type === "student_sharing" && (
+                      <div className="absolute top-0 left-0 right-0 bg-warning text-white text-center text-[10px] font-bold py-1 tracking-wider uppercase z-10">
+                        Student Ride Share
+                      </div>
+                    )}
                     {/* From → To */}
-                    <div className="flex items-center gap-2 mb-3">
+                    <div
+                      className={`flex items-center gap-2 mb-3 ${ride.type === "student_sharing" ? "mt-4" : ""}`}
+                    >
                       <div className="flex-1">
                         <p className="text-xs text-gray-400 uppercase">From</p>
                         <p className="font-bold">{ride.from}</p>
@@ -282,8 +304,16 @@ const StudentDashboard = () => {
                           "confirmed",
                         ].includes(b.status),
                     ) && (
-                      <div className="mb-2 w-fit px-2 py-0.5 rounded text-xs font-bold bg-success/20 text-success">
-                        <i className="ri-check-line mr-1"></i>BOOKED
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-fit px-2 py-0.5 rounded text-xs font-bold bg-success/20 text-success">
+                          <i className="ri-check-line mr-1"></i>BOOKED
+                        </div>
+                        <Link
+                          to={`/ride/${ride._id}`}
+                          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors no-underline"
+                        >
+                          <i className="ri-chat-3-fill mr-1"></i>Chat
+                        </Link>
                       </div>
                     )}
 
@@ -610,18 +640,26 @@ const StudentDashboard = () => {
                     </div>
 
                     {r.status === "active" && editingRideId !== r._id && (
-                      <button
-                        onClick={() => {
-                          setEditingRideId(r._id);
-                          setEditForm({
-                            departure_time: r.departure_time || "",
-                            departure_date: r.departure_date || "",
-                          });
-                        }}
-                        className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
-                      >
-                        Edit Time/Date
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingRideId(r._id);
+                            setEditForm({
+                              departure_time: r.departure_time || "",
+                              departure_date: r.departure_date || "",
+                            });
+                          }}
+                          className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
+                        >
+                          Edit Time/Date
+                        </button>
+                        <button
+                          onClick={() => handleDeactivateRide(r._id)}
+                          className="text-sm bg-red-100 hover:bg-red-200 text-red-600 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
+                        >
+                          Deactivate
+                        </button>
+                      </div>
                     )}
 
                     {editingRideId === r._id && (

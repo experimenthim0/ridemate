@@ -7,9 +7,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🛺</span>
-              <span className="text-lg font-bold text-primary font-[var(--font-heading)]">
-                RideMate
+              <span className="text-2xl"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-14 h-14"/></span>
+              <span className="text-xl font-bold text-primary font-[var(--font-heading)]">
+                Ride<span className="text-white">Mate</span>
               </span>
             </div>
             <p className="text-sm leading-relaxed">

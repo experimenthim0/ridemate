@@ -49,10 +49,10 @@ h6 {
 /* Auto Rickshaw Loading Animation */
 @keyframes drive {
   0% {
-    transform: translateX(-100px);
+    transform: translateX(-200px);
   }
   100% {
-    transform: translateX(calc(100% + 100px));
+    transform: translateX(calc(100% + 200px));
   }
 }
 

@@ -31,5 +31,6 @@ router.get("/ride/:rideId/messages", getRideMessages);
 router.post("/ride/:rideId/messages", postRideMessage);
 router.get("/rides/created", getCreatedRides);
 router.put("/ride/:id", updateCreatedRide);
+router.put("/ride/:id/deactivate", deactivateRideShare);
 
 module.exports = router;

@@ -12,7 +12,19 @@ const getActiveRides = async (req, res) => {
   try {
     const { from, to } = req.query;
 
-    const rides = await Ride.find({ status: "active" })
+    const query = { status: "active" };
+    // Auto-deactivate rides older than 3 hours
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    await Ride.updateMany(
+      {
+        type: "student_sharing",
+        status: "active",
+        createdAt: { $lt: threeHoursAgo },
+      },
+      { $set: { status: "completed" } },
+    );
+
+    const rides = await Ride.find(query)
       .populate("driver_id", "name auto_number phone is_active")
       .populate("student_id", "name phone")
       .sort("-createdAt");
@@ -395,6 +407,34 @@ const updateCreatedRide = async (req, res) => {
   }
 };
 
+// Deactivate created ride (Student)
+const deactivateRideShare = async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id);
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    if (ride.student_id?.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to deactivate this ride" });
+    }
+
+    if (ride.status !== "active") {
+      return res.status(400).json({ message: "Ride is already inactive" });
+    }
+
+    ride.status = "completed"; // Deactivated
+    await ride.save();
+
+    res.json({ message: "Ride deactivated successfully", ride });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get messages for a ride (only if booked or creator)
 const getRideMessages = async (req, res) => {
   try {
@@ -487,4 +527,5 @@ module.exports = {
   postRideMessage,
   getCreatedRides,
   updateCreatedRide,
+  deactivateRideShare,
 };

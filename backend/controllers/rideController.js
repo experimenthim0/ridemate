@@ -6,8 +6,20 @@ const getPublicActiveRides = async (req, res) => {
   try {
     const { from, to } = req.query;
 
+    const query = { status: "active" };
+    // Auto-deactivate rides older than 3 hours
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    await Ride.updateMany(
+      {
+        type: "student_sharing",
+        status: "active",
+        createdAt: { $lt: threeHoursAgo },
+      },
+      { $set: { status: "completed" } },
+    );
+
     // Fetch all active rides
-    const rides = await Ride.find({ status: "active" })
+    const rides = await Ride.find(query)
       .populate("driver_id", "name auto_number is_active")
       .populate("student_id", "name")
       .sort("-createdAt");

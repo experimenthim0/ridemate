@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import API from "../api";
+import { io } from "socket.io-client";
 
 const Footer = () => {
-  const [stats, setStats] = useState({ totalUsers: 0, liveStudents: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, activeStudents: 0 });
 
   useEffect(() => {
+    // Initial fetch
     const fetchStats = async () => {
       try {
         const { data } = await API.get("/public-stats");
@@ -15,6 +17,21 @@ const Footer = () => {
       }
     };
     fetchStats();
+
+    // Setup socket connection
+    const socketURL = import.meta.env.VITE_API_URL || "";
+    const socket = io(socketURL);
+
+    socket.on("stats_update", (newStats) => {
+      setStats((prev) => ({
+        ...prev,
+        ...newStats,
+      }));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
@@ -39,20 +56,20 @@ const Footer = () => {
               approved auto drivers for safe and convenient rides.
             </p>
             <div className="flex gap-4">
-              <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+              {/* <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
                   Total Users
                 </p>
                 <p className="text-white font-bold text-lg">
                   {stats.totalUsers}+
                 </p>
-              </div>
+              </div> */}
               <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
-                  Live Students
+                  Active Students
                 </p>
                 <p className="text-green-500 font-bold text-lg">
-                  {stats.liveStudents}+
+                  {stats.activeStudents}+
                 </p>
               </div>
             </div>

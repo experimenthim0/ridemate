@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { io } from "socket.io-client";
 
 // Pages
 import Home from "./pages/Home";
@@ -22,6 +24,16 @@ import DriverConsent from "./pages/DriverConsent";
 import NotFound from "./pages/NotFound";
 
 function App() {
+  useEffect(() => {
+    // Connect to the socket server
+    const socketURL = import.meta.env.VITE_API_URL || "";
+    const socket = io(socketURL);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

@@ -29,7 +29,51 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "RideMate API is running" });
 });
 
-// Public Stats for Footer
+const http = require("http");
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // allow all or restrict to your frontend domain in production
+    methods: ["GET", "POST"],
+  },
+});
+
+// Track connected users
+const connectedStudents = new Set();
+let totalConnectedStudents = 0;
+
+// Helper to broadcast stats
+const broadcastStats = async () => {
+  try {
+    const Driver = require("./models/Driver");
+    const Student = require("./models/Student");
+    const totalDrivers = await Driver.countDocuments();
+    const totalStudents = await Student.countDocuments();
+
+    io.emit("stats_update", {
+      totalUsers: totalDrivers + totalStudents,
+      activeStudents: totalConnectedStudents,
+    });
+  } catch (error) {
+    console.error("Error broadcasting stats", error);
+  }
+};
+
+io.on("connection", (socket) => {
+  // We can track total socket connections generically,
+  // or listen for a specific event when a user "logs in"
+  totalConnectedStudents++;
+  broadcastStats();
+
+  socket.on("disconnect", () => {
+    totalConnectedStudents = Math.max(0, totalConnectedStudents - 1);
+    broadcastStats();
+  });
+});
+
+// Update the public-stats endpoint to return the live connected students
 app.get("/api/public-stats", async (req, res) => {
   try {
     const Driver = require("./models/Driver");
@@ -39,17 +83,11 @@ app.get("/api/public-stats", async (req, res) => {
 
     res.json({
       totalUsers: totalDrivers + totalStudents,
-      liveStudents: totalStudents,
+      activeStudents: totalConnectedStudents, // using real-time socket count
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching stats" });
   }
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -80,7 +118,7 @@ const cleanupOldRides = async () => {
 // Run cleanup every hour
 setInterval(cleanupOldRides, 60 * 60 * 1000);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`RideMate server running on port ${PORT}`);
   cleanupOldRides(); // Run once on startup
 });

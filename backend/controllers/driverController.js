@@ -1,6 +1,7 @@
 const Ride = require("../models/Ride");
 const Booking = require("../models/Booking");
 const Student = require("../models/Student");
+const Message = require("../models/Message");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
 const { generateUPIQR } = require("../utils/qrGenerator");
 
@@ -398,6 +399,67 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Get messages for a ride (Driver)
+const getRideMessages = async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const driverId = req.user._id;
+
+    const ride = await Ride.findById(rideId);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    // Validate if the current driver is the creator
+    if (ride.driver_id?.toString() !== driverId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized for this ride's messages" });
+    }
+
+    const messages = await Message.find({ ride_id: rideId })
+      .populate("sender_id", "name")
+      .sort("createdAt");
+
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Post a message to a ride (Driver)
+const postRideMessage = async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const { text } = req.body;
+    const driverId = req.user._id;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Message text is required" });
+    }
+
+    const ride = await Ride.findById(rideId);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    if (ride.driver_id?.toString() !== driverId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to send messages here" });
+    }
+
+    const message = await Message.create({
+      ride_id: rideId,
+      sender_id: driverId,
+      sender_model: "Driver",
+      text: text.trim(),
+    });
+
+    await message.populate("sender_id", "name");
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createRide,
   fillSeat,
@@ -413,4 +475,6 @@ module.exports = {
   getProfile,
   updateProfile,
   updateRideTime,
+  getRideMessages,
+  postRideMessage,
 };

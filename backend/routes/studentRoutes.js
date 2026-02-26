@@ -8,6 +8,12 @@ const {
   cancelBooking,
   getMyBookings,
   getRideDetails,
+  createRideShare,
+  reportFakeRide,
+  getRideMessages,
+  postRideMessage,
+  getCreatedRides,
+  updateCreatedRide,
 } = require("../controllers/studentController");
 
 // All routes are protected + student only
@@ -19,5 +25,11 @@ router.post("/book/:rideId", bookSeat);
 router.put("/book/:bookingId/pay", markAsPaid);
 router.put("/book/:bookingId/cancel", cancelBooking);
 router.get("/bookings", getMyBookings);
+router.post("/ride", createRideShare);
+router.post("/ride/:id/report", reportFakeRide);
+router.get("/ride/:rideId/messages", getRideMessages);
+router.post("/ride/:rideId/messages", postRideMessage);
+router.get("/rides/created", getCreatedRides);
+router.put("/ride/:id", updateCreatedRide);
 
 module.exports = router;

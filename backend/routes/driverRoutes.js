@@ -16,6 +16,8 @@ const {
   getProfile,
   updateProfile,
   updateRideTime,
+  getRideMessages,
+  postRideMessage,
 } = require("../controllers/driverController");
 
 // All routes are protected + driver only
@@ -35,5 +37,7 @@ router.put("/bookings/:id/noshow", markNoShow);
 router.post("/block/:studentId", blockStudent);
 router.delete("/block/:studentId", unblockStudent);
 router.get("/blocked", getBlockedStudents);
+router.get("/rides/:rideId/messages", getRideMessages);
+router.post("/rides/:rideId/messages", postRideMessage);
 
 module.exports = router;

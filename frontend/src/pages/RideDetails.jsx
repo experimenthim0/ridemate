@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
 import Loader from "../components/Loader";
+import RideChat from "../components/RideChat";
 
 const RideDetails = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const RideDetails = () => {
   const [qr, setQr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
+  const [hasAccess, setHasAccess] = useState(false); // Determines chat access
 
   useEffect(() => {
     const fetchRide = async () => {
@@ -21,6 +23,15 @@ const RideDetails = () => {
           const { data } = await API.get(`/student/ride/${id}`);
           setRide(data.ride);
           setQr(data.qr);
+          setHasAccess(
+            data.hasBooking ||
+              data.ride.student_id?._id === user._id ||
+              data.ride.driver_id?._id === user._id,
+          );
+        } else if (user && role === "driver") {
+          const { data } = await API.get(`/rides/${id}`); 
+          setRide(data.ride);
+          setHasAccess(data.ride.driver_id?._id === user._id);
         } else {
           const { data } = await API.get(`/rides/${id}`);
           setRide(data.ride);
@@ -40,6 +51,17 @@ const RideDetails = () => {
       setTimeout(() => navigate("/student-dashboard"), 1500);
     } catch (err) {
       setMsg(err.response?.data?.message || "Booking failed");
+    }
+  };
+
+  const handleReport = async () => {
+    if (!confirm("Report this as a fake ride? The creator may be banned."))
+      return;
+    try {
+      const { data } = await API.post(`/student/ride/${id}/report`);
+      setMsg(data.message);
+    } catch (err) {
+      setMsg(err.response?.data?.message || "Report failed");
     }
   };
 
@@ -138,8 +160,33 @@ const RideDetails = () => {
           </div>
         )}
 
-        {/* Driver Info */}
-        {ride.driver_id && (
+        {/* Driver or Student Info */}
+        {ride.type === "student_sharing" && ride.student_id ? (
+          <div className="bg-yellow-50 rounded-xl p-4 mb-6 border border-yellow-200">
+            <h3 className="font-bold mb-2 flex justify-between items-center text-yellow-800">
+              <span>
+                <i className="ri-user-smile-line text-warning mr-1"></i>Student
+                (Ride Share)
+              </span>
+              <span className="bg-warning text-white px-2 py-0.5 rounded-lg text-xs font-bold">
+                RIDESHARING
+              </span>
+            </h3>
+            <p className="text-sm text-yellow-900">
+              <strong>Name:</strong> {ride.student_id.name}
+            </p>
+            {ride.student_id.phone && (
+              <p className="text-sm text-yellow-900">
+                <strong>Phone:</strong> {ride.student_id.phone}
+              </p>
+            )}
+            {ride.student_id.email && (
+              <p className="text-sm text-yellow-900">
+                <strong>Email:</strong> {ride.student_id.email}
+              </p>
+            )}
+          </div>
+        ) : ride.driver_id ? (
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <h3 className="font-bold mb-2">
               <i className="ri-taxi-line text-primary mr-1"></i>Driver
@@ -154,7 +201,7 @@ const RideDetails = () => {
               <strong>Phone:</strong> {ride.driver_id.phone}
             </p>
           </div>
-        )}
+        ) : null}
 
         {/* QR Code */}
         {qr && ride.status === "active" && (
@@ -184,6 +231,18 @@ const RideDetails = () => {
           </button>
         )}
 
+        {user &&
+          role === "student" &&
+          ride.status === "active" &&
+          ride.type === "student_sharing" && (
+            <button
+              onClick={handleReport}
+              className="w-full bg-red-100 hover:bg-red-200 text-error py-3.5 rounded-xl font-bold text-lg cursor-pointer border-none transition-colors mt-3"
+            >
+              <i className="ri-alarm-warning-line mr-2"></i>Report Fake Ride
+            </button>
+          )}
+
         {isFull && ride.status === "active" && (
           <div className="text-center py-3 bg-error/10 text-error rounded-xl font-bold">
             All seats filled
@@ -199,6 +258,9 @@ const RideDetails = () => {
           </a>
         )}
       </div>
+
+      {/* Render Chat Component using the hasAccess state! */}
+       <RideChat rideId={ride._id} currentUserId={user?._id} canChat={hasAccess} />
     </div>
   );
 };

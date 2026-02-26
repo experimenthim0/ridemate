@@ -5,8 +5,23 @@ const rideSchema = new mongoose.Schema(
     driver_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Driver",
-      required: true,
+      // Optional now because a student can also create a ride
     },
+    student_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+    },
+    type: {
+      type: String,
+      enum: ["driver", "student_sharing"],
+      default: "driver",
+    },
+    reports: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
     from: {
       type: String,
       required: [true, "Pickup location is required"],

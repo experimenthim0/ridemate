@@ -1,5 +1,6 @@
 const Ride = require("../models/Ride");
 const Booking = require("../models/Booking");
+const Message = require("../models/Message");
 const Student = require("../models/Student");
 const Driver = require("../models/Driver");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
@@ -13,11 +14,14 @@ const getActiveRides = async (req, res) => {
 
     const rides = await Ride.find({ status: "active" })
       .populate("driver_id", "name auto_number phone is_active")
+      .populate("student_id", "name phone")
       .sort("-createdAt");
 
-    // Filter out rides from inactive drivers
+    // Filter out rides from inactive drivers (but allow student rides)
     const activeRides = rides.filter(
-      (ride) => ride.driver_id && ride.driver_id.is_active,
+      (ride) =>
+        ride.type === "student_sharing" ||
+        (ride.driver_id && ride.driver_id.is_active),
     );
 
     // Apply route-based midway filtering
@@ -200,10 +204,9 @@ const getMyBookings = async (req, res) => {
 // Get ride details with QR
 const getRideDetails = async (req, res) => {
   try {
-    const ride = await Ride.findById(req.params.id).populate(
-      "driver_id",
-      "name auto_number phone upi_id",
-    );
+    const ride = await Ride.findById(req.params.id)
+      .populate("driver_id", "name auto_number phone upi_id")
+      .populate("student_id", "name phone email");
 
     if (!ride) {
       return res.status(404).json({ message: "Ride not found" });
@@ -218,7 +221,254 @@ const getRideDetails = async (req, res) => {
       );
     }
 
-    res.json({ ride, qr: qrData });
+    // Check if the current user has booked this ride to allow chat access
+    const hasBooking = req.user
+      ? await Booking.findOne({
+          ride_id: ride._id,
+          student_id: req.user._id,
+          status: { $in: ["pending", "pending_confirmation", "confirmed"] },
+        })
+      : false;
+
+    res.json({ ride, qr: qrData, hasBooking: !!hasBooking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a ride share (Student)
+const createRideShare = async (req, res) => {
+  try {
+    const student = await Student.findById(req.user._id);
+
+    // Check ban status
+    if (student.banCount >= 3) {
+      return res
+        .status(403)
+        .json({ message: "You are permanently banned from creating rides." });
+    }
+    if (
+      student.rideCreationBanUntil &&
+      new Date() < student.rideCreationBanUntil
+    ) {
+      return res.status(403).json({
+        message:
+          "You are temporarily banned from creating rides until " +
+          student.rideCreationBanUntil.toLocaleDateString(),
+      });
+    }
+
+    // Check daily limit
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastRideDate = student.lastRideCreatedAt
+      ? new Date(student.lastRideCreatedAt)
+      : null;
+    if (lastRideDate) lastRideDate.setHours(0, 0, 0, 0);
+
+    if (lastRideDate && lastRideDate.getTime() === today.getTime()) {
+      if (student.createdRidesCount >= 2) {
+        return res
+          .status(400)
+          .json({ message: "You can only create 2 rides per day." });
+      }
+      student.createdRidesCount += 1;
+    } else {
+      student.createdRidesCount = 1;
+    }
+    student.lastRideCreatedAt = new Date();
+    await student.save();
+
+    const { from, to, total_seats, departure_time, departure_date } = req.body;
+
+    if (!from || !to || !total_seats) {
+      return res
+        .status(400)
+        .json({ message: "From, to, and total seats are required" });
+    }
+
+    const ride = await Ride.create({
+      student_id: student._id,
+      type: "student_sharing",
+      from,
+      to,
+      total_seats,
+      departure_time: departure_time || "",
+      departure_date: departure_date || "",
+    });
+
+    res.status(201).json({ message: "Ride share created successfully", ride });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Report a fake student ride
+const reportFakeRide = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const studentId = req.user._id;
+
+    const ride = await Ride.findById(id);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+    if (ride.type !== "student_sharing")
+      return res
+        .status(400)
+        .json({ message: "Only student shared rides can be reported" });
+
+    // Prevent duplicate reports
+    if (ride.reports.includes(studentId)) {
+      return res
+        .status(400)
+        .json({ message: "You have already reported this ride" });
+    }
+
+    ride.reports.push(studentId);
+
+    // If reports reach 3
+    if (ride.reports.length >= 3) {
+      ride.status = "completed"; // Mark inactive or hide
+
+      const creator = await Student.findById(ride.student_id);
+      if (creator) {
+        creator.banCount += 1;
+        if (creator.banCount < 3) {
+          // 7 days ban
+          const banDate = new Date();
+          banDate.setDate(banDate.getDate() + 7);
+          creator.rideCreationBanUntil = banDate;
+        }
+        await creator.save();
+      }
+    }
+
+    await ride.save();
+    res.json({ message: "Ride reported. Thank you for your feedback!" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get created rides (Student)
+const getCreatedRides = async (req, res) => {
+  try {
+    const rides = await Ride.find({
+      student_id: req.user._id,
+      type: "student_sharing",
+    })
+      .sort("-createdAt")
+      .limit(7); // Last 7 rides
+    res.json(rides);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update created ride (Student)
+const updateCreatedRide = async (req, res) => {
+  try {
+    const { departure_time, departure_date } = req.body;
+    const ride = await Ride.findById(req.params.id);
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
+
+    if (ride.student_id?.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this ride" });
+    }
+
+    if (ride.status !== "active") {
+      return res.status(400).json({ message: "Cannot edit an inactive ride" });
+    }
+
+    if (departure_time !== undefined) ride.departure_time = departure_time;
+    if (departure_date !== undefined) ride.departure_date = departure_date;
+
+    await ride.save();
+
+    res.json({ message: "Ride updated successfully", ride });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get messages for a ride (only if booked or creator)
+const getRideMessages = async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const studentId = req.user._id;
+
+    // Check if ride exists
+    const ride = await Ride.findById(rideId);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    // Verify access: must be creator or have an active/pending booking
+    const isCreator = ride.student_id?.toString() === studentId.toString();
+    const hasBooking = await Booking.findOne({
+      ride_id: rideId,
+      student_id: studentId,
+      status: { $in: ["pending", "pending_confirmation", "confirmed"] },
+    });
+
+    if (!isCreator && !hasBooking) {
+      return res
+        .status(403)
+        .json({ message: "You must book this ride to view messages" });
+    }
+
+    const messages = await Message.find({ ride_id: rideId })
+      .populate("sender_id", "name")
+      .sort("createdAt");
+
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Post a message to a ride (only text and emojis)
+const postRideMessage = async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const { text } = req.body;
+    const studentId = req.user._id;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Message text is required" });
+    }
+
+    // Check if ride exists
+    const ride = await Ride.findById(rideId);
+    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    // Verify access
+    const isCreator = ride.student_id?.toString() === studentId.toString();
+    const hasBooking = await Booking.findOne({
+      ride_id: rideId,
+      student_id: studentId,
+      status: { $in: ["pending", "pending_confirmation", "confirmed"] },
+    });
+
+    if (!isCreator && !hasBooking) {
+      return res
+        .status(403)
+        .json({ message: "You must book this ride to send messages" });
+    }
+
+    const message = await Message.create({
+      ride_id: rideId,
+      sender_id: studentId,
+      sender_model: "Student",
+      text: text.trim(),
+    });
+
+    // Populate sender details for the response
+    await message.populate("sender_id", "name");
+
+    res.status(201).json(message);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -231,4 +481,10 @@ module.exports = {
   cancelBooking,
   getMyBookings,
   getRideDetails,
+  createRideShare,
+  reportFakeRide,
+  getRideMessages,
+  postRideMessage,
+  getCreatedRides,
+  updateCreatedRide,
 };

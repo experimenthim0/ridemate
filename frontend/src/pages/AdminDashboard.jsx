@@ -9,6 +9,7 @@ const AdminDashboard = () => {
   const [students, setStudents] = useState([]);
   const [rides, setRides] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [fakeReports, setFakeReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [showAddDriver, setShowAddDriver] = useState(false);
@@ -30,18 +31,20 @@ const AdminDashboard = () => {
 
   const fetchAll = async () => {
     try {
-      const [s, d, st, r, c] = await Promise.all([
+      const [s, d, st, r, c, fr] = await Promise.all([
         API.get("/admin/stats"),
         API.get("/admin/drivers"),
         API.get("/admin/students"),
         API.get("/admin/rides"),
         API.get("/admin/complaints"),
+        API.get("/admin/fake-ride-reports"),
       ]);
       setStats(s.data);
       setDrivers(d.data);
       setStudents(st.data);
       setRides(r.data);
       setComplaints(c.data);
+      setFakeReports(fr.data);
     } catch (err) {
       console.error(err);
     }
@@ -148,13 +151,20 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {["stats", "drivers", "students", "rides", "complaints"].map((tab) => (
+        {[
+          "stats",
+          "drivers",
+          "students",
+          "rides",
+          "complaints",
+          "fake-reports",
+        ].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-5 py-2.5 rounded-xl font-medium text-sm cursor-pointer border-none transition-colors capitalize ${activeTab === tab ? "bg-primary text-auto-black" : "bg-white text-gray-600 hover:bg-gray-100"}`}
           >
-            {tab}
+            {tab.replace("-", " ")}
           </button>
         ))}
       </div>
@@ -483,9 +493,23 @@ const AdminDashboard = () => {
                     <span>{r.from}</span>
                     <i className="ri-arrow-right-line text-primary"></i>
                     <span>{r.to}</span>
+                    {r.type === "student_sharing" && (
+                      <span className="bg-warning text-white px-2 py-0.5 rounded text-[10px] ml-2">
+                        RIDESHARING
+                      </span>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Driver: {r.driver_id?.name} ({r.driver_id?.auto_number})
+                  <p className="text-sm text-gray-500 mt-1">
+                    {r.type === "student_sharing" ? (
+                      <>
+                        Creator (Student): {r.student_id?.name} (
+                        {r.student_id?.phone})
+                      </>
+                    ) : (
+                      <>
+                        Driver: {r.driver_id?.name} ({r.driver_id?.auto_number})
+                      </>
+                    )}
                   </p>
                   <p className="text-sm text-gray-500">
                     {r.filled_seats}/{r.total_seats} seats
@@ -546,6 +570,65 @@ const AdminDashboard = () => {
                     <i className="ri-check-line mr-1"></i>Resolve
                   </button>
                 )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Fake Ride Reports */}
+      {activeTab === "fake-reports" && (
+        <div className="space-y-3">
+          {fakeReports.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl">
+              <p className="text-gray-500">No fake ride reports</p>
+            </div>
+          ) : (
+            fakeReports.map((r) => (
+              <div
+                key={r._id}
+                className="bg-white rounded-2xl p-5 border border-error/20"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold flex items-center gap-2">
+                      <i className="ri-alarm-warning-line text-error"></i>
+                      Fake Ride Report (Ride: {r.from} to {r.to})
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      <strong>Created By (Student):</strong>{" "}
+                      {r.student_id?.name} ({r.student_id?.phone})
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <strong>Current Ban Count:</strong>{" "}
+                      {r.student_id?.banCount || 0}
+                    </p>
+                    {r.student_id?.rideCreationBanUntil &&
+                      new Date(r.student_id?.rideCreationBanUntil) >
+                        new Date() && (
+                        <p className="text-sm text-error font-bold">
+                          Banned until:{" "}
+                          {new Date(
+                            r.student_id.rideCreationBanUntil,
+                          ).toLocaleDateString()}
+                        </p>
+                      )}
+                  </div>
+                  <span className="px-3 py-1 bg-error text-white rounded-lg text-xs font-bold">
+                    {r.reports.length} Report(s)
+                  </span>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-bold mb-2">Reported By:</h4>
+                  <ul className="text-sm text-gray-600 list-disc pl-5">
+                    {r.reports.map((reporter, idx) => (
+                      <li key={idx}>
+                        {reporter.name} ({reporter.phone})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))
           )}

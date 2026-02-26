@@ -12,6 +12,7 @@ const {
   getComplaints,
   resolveComplaint,
   getDashboardStats,
+  getFakeRideReports,
 } = require("../controllers/adminController");
 
 // All routes are protected + admin only
@@ -25,6 +26,7 @@ router.put("/drivers/:id", updateDriver);
 router.get("/students", getStudents);
 router.put("/students/:id/unblock", unblockStudent);
 router.get("/rides", getAllRides);
+router.get("/fake-ride-reports", getFakeRideReports);
 router.get("/complaints", getComplaints);
 router.put("/complaints/:id", resolveComplaint);
 

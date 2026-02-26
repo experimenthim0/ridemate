@@ -153,6 +153,7 @@ const getAllRides = async (req, res) => {
   try {
     const rides = await Ride.find()
       .populate("driver_id", "name auto_number phone")
+      .populate("student_id", "name phone")
       .sort("-createdAt");
     res.json(rides);
   } catch (error) {
@@ -185,6 +186,21 @@ const resolveComplaint = async (req, res) => {
     await complaint.save();
 
     res.json({ message: "Complaint resolved", complaint });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get Fake Ride Reports
+const getFakeRideReports = async (req, res) => {
+  try {
+    // Find rides that have at least one report
+    const ridesWithReports = await Ride.find({ "reports.0": { $exists: true } })
+      .populate("student_id", "name phone email banCount rideCreationBanUntil")
+      .populate("reports", "name phone email")
+      .sort("-createdAt");
+
+    res.json(ridesWithReports);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -232,4 +248,5 @@ module.exports = {
   getComplaints,
   resolveComplaint,
   getDashboardStats,
+  getFakeRideReports,
 };

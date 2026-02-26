@@ -38,15 +38,30 @@ const studentSchema = new mongoose.Schema(
       default: "student",
       immutable: true,
     },
+    createdRidesCount: {
+      type: Number,
+      default: 0,
+    },
+    lastRideCreatedAt: {
+      type: Date,
+      default: null,
+    },
+    rideCreationBanUntil: {
+      type: Date,
+      default: null,
+    },
+    banCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );
 
 studentSchema.pre("save", async function () {
-  if (!this.isModified("password")) return ;
+  if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  
 });
 
 studentSchema.methods.matchPassword = async function (enteredPassword) {

@@ -181,9 +181,22 @@ const Home = () => {
             b.ride_id?._id === ride._id &&
             ["pending", "pending_confirmation", "confirmed"].includes(b.status),
         ) && (
+          <div className="flex justify-between">
+
           <div className="mb-2 w-fit px-2 py-0.5 rounded text-xs font-bold bg-success/20 text-success">
+            
             <i className="ri-check-line mr-1"></i>BOOKED
           </div>
+          <Link
+                          to={`/ride/${ride._id}`}
+                          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors no-underline"
+                        >
+                          <i className="ri-chat-3-fill mr-1"></i>Chat
+                        </Link>
+          </div>
+     
+
+        
         )}
 
         {/* Driver or Student Info */}
@@ -281,8 +294,8 @@ const Home = () => {
       <span className="text-primary">Ride</span>Mate
     </h1>
     <p className="text-lg text-gray-300 mb-4 max-w-xl mx-auto">
-      Auto Seat Booking Platform For NITJ — Book your seat in college approved autos.
-    </p>
+      Auto Seat Booking and Sharing Platform For NITJians.
+      </p>
 
     {/* Feature Highlight Banner */}
     {/* <div className="mb-6 p-4 bg-yellow-500/20 text-yellow-200 rounded-xl border border-yellow-500/30 text-sm max-w-2xl mx-auto text-left space-y-3">
@@ -426,6 +439,29 @@ const Home = () => {
         )}
       </section>
 
+
+
+<section className="px-5"> 
+    <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
+  <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
+    <i className="ri-alert-line text-red-600"></i>
+    Important Notice
+  </h3>
+
+  <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
+    <li>
+      The app is still in development, so you may encounter bugs. Please report them to 
+      <span className="text-blue-600 font-semibold"> contact.nikhim@gmail.com</span>.
+    </li>
+    <li>
+      Do not create fake rides — this will result in your account being banned.
+    </li>
+    <li>
+      Sometimes rides may not be available due to a low or inactive user base. Please cooperate by creating rides whenever you travel.
+    </li>
+  </ul>
+</div>
+</section>
 
 
 <section className="w-full  bg-white py-10 ">

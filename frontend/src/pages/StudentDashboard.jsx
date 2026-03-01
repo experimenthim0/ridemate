@@ -241,7 +241,7 @@ const StudentDashboard = () => {
 
           {rides.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl">
-              <div className="text-5xl mb-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-20 h-20"/></div>
+              <div className="flex justify-center items-center mb-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-20 h-20"/></div>
               <p className="text-gray-500">No active rides available</p>
             </div>
           ) : (
@@ -325,7 +325,7 @@ const StudentDashboard = () => {
                           {ride.student_id?.name || "Student"}
                         </span>
                         <div className="flex gap-2 items-center">
-                          <span className="bg-warning text-white px-2 py-0.5 rounded-lg text-xs font-bold">
+                          <span className="bg-warning text-green-500 px-2 py-0.5 rounded-lg text-xs font-bold">
                             RIDESHARING
                           </span>
                           <button

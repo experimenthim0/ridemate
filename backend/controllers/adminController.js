@@ -4,6 +4,8 @@ const Ride = require("../models/Ride");
 const Booking = require("../models/Booking");
 const Complaint = require("../models/Complaint");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
+const Suggestion = require("../models/Suggestion");
+const SystemStat = require("../models/SystemStat");
 
 // Add driver (admin only)
 const addDriver = async (req, res) => {
@@ -277,7 +279,9 @@ const getDashboardStats = async (req, res) => {
     const blockedStudents = await Student.countDocuments({
       is_globally_blocked: true,
     });
-    const totalRides = await Ride.countDocuments();
+    // Fetch totalRidesCreated from SystemStat, fallback to 0
+    const stat = await SystemStat.findOne();
+    const totalRides = stat ? stat.totalRidesCreated : 0;
     const activeRides = await Ride.countDocuments({ status: "active" });
     const totalBookings = await Booking.countDocuments();
     const pendingComplaints = await Complaint.countDocuments({
@@ -299,6 +303,16 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// Get suggestions
+const getSuggestions = async (req, res) => {
+  try {
+    const suggestions = await Suggestion.find().sort("-createdAt");
+    res.json(suggestions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   addDriver,
   getDrivers,
@@ -313,4 +327,5 @@ module.exports = {
   getFakeRideReports,
   deactivateRideAdmin,
   deleteCancelledBookings,
+  getSuggestions,
 };

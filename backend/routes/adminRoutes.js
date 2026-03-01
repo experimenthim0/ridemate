@@ -15,6 +15,7 @@ const {
   getFakeRideReports,
   deactivateRideAdmin,
   deleteCancelledBookings,
+  getSuggestions,
 } = require("../controllers/adminController");
 
 // All routes are protected + admin only
@@ -33,5 +34,6 @@ router.delete("/bookings/cancelled", deleteCancelledBookings);
 router.get("/fake-ride-reports", getFakeRideReports);
 router.get("/complaints", getComplaints);
 router.put("/complaints/:id", resolveComplaint);
+router.get("/suggestions", getSuggestions);
 
 module.exports = router;

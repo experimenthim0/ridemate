@@ -10,6 +10,7 @@ const AdminDashboard = () => {
   const [rides, setRides] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [fakeReports, setFakeReports] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [showAddDriver, setShowAddDriver] = useState(false);
@@ -31,13 +32,14 @@ const AdminDashboard = () => {
 
   const fetchAll = async () => {
     try {
-      const [s, d, st, r, c, fr] = await Promise.all([
+      const [s, d, st, r, c, fr, sugg] = await Promise.all([
         API.get("/admin/stats"),
         API.get("/admin/drivers"),
         API.get("/admin/students"),
         API.get("/admin/rides"),
         API.get("/admin/complaints"),
         API.get("/admin/fake-ride-reports"),
+        API.get("/admin/suggestions"),
       ]);
       setStats(s.data);
       setDrivers(d.data);
@@ -45,6 +47,7 @@ const AdminDashboard = () => {
       setRides(r.data);
       setComplaints(c.data);
       setFakeReports(fr.data);
+      setSuggestions(sugg.data);
     } catch (err) {
       console.error(err);
     }
@@ -137,7 +140,10 @@ const AdminDashboard = () => {
 
   const handleDeactivateRide = async (id) => {
     // FIX: Added window.confirm to prevent no-undef errors
-    if (!window.confirm("Are you sure you want to manually deactivate this ride?")) return;
+    if (
+      !window.confirm("Are you sure you want to manually deactivate this ride?")
+    )
+      return;
     try {
       await API.put(`/admin/rides/${id}/deactivate`);
       flash("Ride deactivated successfully");
@@ -183,6 +189,7 @@ const AdminDashboard = () => {
           "rides",
           "complaints",
           "fake-reports",
+          "suggestions",
         ].map((tab) => (
           <button
             key={tab}
@@ -247,17 +254,26 @@ const AdminDashboard = () => {
               color: "bg-error",
             },
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group">
-               <div className={`absolute top-0 left-0 w-1 ${stat.color} h-full group-hover:w-2 transition-all`}></div>
+            <div
+              key={i}
+              className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm relative overflow-hidden group"
+            >
+              <div
+                className={`absolute top-0 left-0 w-1 ${stat.color} h-full group-hover:w-2 transition-all`}
+              ></div>
               <div
                 className={`w-12 h-12 ${stat.color} bg-opacity-10 rounded-xl flex items-center justify-center mb-4`}
               >
-                <i className={`${stat.icon} ${stat.color} text-white text-xl group-hover:scale-110 transition-transform`}></i>
+                <i
+                  className={`${stat.icon} ${stat.color} text-white text-xl group-hover:scale-110 transition-transform`}
+                ></i>
               </div>
               <p className="text-3xl font-extrabold font-[var(--font-heading)] text-gray-800">
                 {stat.value || 0}
               </p>
-              <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mt-1">{stat.label}</p>
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mt-1">
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
@@ -266,17 +282,18 @@ const AdminDashboard = () => {
       {/* Stats Actions Section */}
       {activeTab === "stats" && (
         <div className="mt-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-               <i className="ri-settings-3-line text-primary"></i> System Maintenance
-            </h3>
-            <div className="flex gap-4 flex-wrap">
-               <button 
-                  onClick={handleCleanUpBookings}
-                  className="bg-error/10 hover:bg-error/20 text-error px-5 py-2.5 rounded-xl font-semibold border-none cursor-pointer transition-colors flex items-center gap-2"
-               >
-                 <i className="ri-delete-bin-line"></i> Delete Cancelled Bookings
-               </button>
-            </div>
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <i className="ri-settings-3-line text-primary"></i> System
+            Maintenance
+          </h3>
+          <div className="flex gap-4 flex-wrap">
+            <button
+              onClick={handleCleanUpBookings}
+              className="bg-error/10 hover:bg-error/20 text-error px-5 py-2.5 rounded-xl font-semibold border-none cursor-pointer transition-colors flex items-center gap-2"
+            >
+              <i className="ri-delete-bin-line"></i> Delete Cancelled Bookings
+            </button>
+          </div>
         </div>
       )}
 
@@ -565,7 +582,7 @@ const AdminDashboard = () => {
                   >
                     {r.status.toUpperCase()}
                   </span>
-                  
+
                   {r.status === "active" && (
                     <button
                       onClick={() => handleDeactivateRide(r._id)}
@@ -619,7 +636,9 @@ const AdminDashboard = () => {
                   <button
                     onClick={() => {
                       // FIX: Added window.prompt to prevent no-undef errors
-                      const resp = window.prompt("Enter response (or leave blank):");
+                      const resp = window.prompt(
+                        "Enter response (or leave blank):",
+                      );
                       handleResolve(c._id, resp);
                     }}
                     className="mt-2 bg-success text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer border-none hover:bg-success-dark transition-colors"
@@ -688,6 +707,39 @@ const AdminDashboard = () => {
                     ))}
                   </ul>
                 </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {activeTab === "suggestions" && (
+        <div className="space-y-3">
+          {suggestions.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl border-2 border-black shadow-[4px_4px_0px_#0D0D0D]">
+              <p className="text-gray-500 font-bold uppercase tracking-wider">
+                No suggestions yet
+              </p>
+            </div>
+          ) : (
+            suggestions.map((s) => (
+              <div
+                key={s._id}
+                className="bg-white rounded-sm p-5 border-2 border-black shadow-[4px_4px_0px_#0D0D0D] transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0D0D0D]"
+              >
+                <div className="flex justify-between items-start mb-3 border-b-2 border-black pb-2">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <i className="ri-message-3-line text-primary"></i>
+                    Anonymous Suggestion
+                  </h3>
+                  <span className="text-sm font-bold bg-gray-100 px-2 py-1 border-2 border-black rounded-sm">
+                    {new Date(s.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap">
+                  {s.text}
+                </p>
               </div>
             ))
           )}

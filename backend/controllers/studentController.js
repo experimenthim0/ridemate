@@ -4,6 +4,7 @@ const Message = require("../models/Message");
 const Student = require("../models/Student");
 const Driver = require("../models/Driver");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
+const SystemStat = require("../models/SystemStat");
 const { generateUPIQR } = require("../utils/qrGenerator");
 const { findMatchingRides } = require("../utils/routes");
 
@@ -308,6 +309,13 @@ const createRideShare = async (req, res) => {
       departure_time: departure_time || "",
       departure_date: departure_date || "",
     });
+
+    // Increment global system stat
+    await SystemStat.findOneAndUpdate(
+      {},
+      { $inc: { totalRidesCreated: 1 } },
+      { upsert: true, new: true },
+    );
 
     res.status(201).json({ message: "Ride share created successfully", ride });
   } catch (error) {

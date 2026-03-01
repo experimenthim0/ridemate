@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const Student = require("../models/Student");
 const Message = require("../models/Message");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
+const SystemStat = require("../models/SystemStat");
 const { generateUPIQR } = require("../utils/qrGenerator");
 
 // Create ride
@@ -42,6 +43,13 @@ const createRide = async (req, res) => {
       departure_time: departure_time || "",
       departure_date: departure_date || "",
     });
+
+    // Increment global system stat
+    await SystemStat.findOneAndUpdate(
+      {},
+      { $inc: { totalRidesCreated: 1 } },
+      { upsert: true, new: true },
+    );
 
     res.status(201).json(ride);
   } catch (error) {

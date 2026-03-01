@@ -4,7 +4,11 @@ import API from "../api";
 import { io } from "socket.io-client";
 
 const Footer = () => {
-  const [stats, setStats] = useState({ totalUsers: 0, activeStudents: 0 });
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeStudents: 0,
+    totalRidesCreated: 0,
+  });
 
   useEffect(() => {
     // Initial fetch
@@ -56,14 +60,14 @@ const Footer = () => {
               approved auto drivers for safe and convenient rides.
             </p>
             <div className="flex gap-4">
-              {/* <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+              <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
-                  Total Users
+                  Total Rides
                 </p>
                 <p className="text-white font-bold text-lg">
-                  {stats.totalUsers}+
+                  {stats.totalRidesCreated}+
                 </p>
-              </div> */}
+              </div>
               <div className="bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">
                   Active Students

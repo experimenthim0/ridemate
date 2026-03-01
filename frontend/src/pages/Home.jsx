@@ -14,7 +14,10 @@ const Home = () => {
   const [filterTo, setFilterTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [myBookings, setMyBookings] = useState([]);
-  const [ msg,setMsg] = useState("");
+  const [suggestionText, setSuggestionText] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [msg, setMsg] = useState("");
 
   const fetchRides = async () => {
     setLoading(true);
@@ -52,40 +55,40 @@ const Home = () => {
     fetchRides();
   };
 
- const handleShare = async () => {
-  const shareUrl = window.location.origin; // homepage URL
+  const handleShare = async () => {
+    const shareUrl = window.location.origin; // homepage URL
 
-  // Array of promotional taglines
-  const messages = [
-    "🔥 Wait Less, Pay Less, and Share Your Ride with Fellow Students — All in One Smart Platform.",
-    "🔥 No More Empty Autos, No More Full Fares — Find Your Seat, Split the Cost, and Ride Stress-Free.",
-    "🔥 Book a Seat, Share the Fare, and Reach Your Destination Faster with Verified Campus Autos.",
-    "🔥 Turn Every Ride into a Shared, Affordable, and Hassle-Free Journey.",
-    "🔥 Smarter Rides for Students — Less Waiting, Lower Fares, and Trusted Drivers."
-  ];
+    // Array of promotional taglines
+    const messages = [
+      "🔥 Wait Less, Pay Less, and Share Your Ride with Fellow Students — All in One Smart Platform.",
+      "🔥 No More Empty Autos, No More Full Fares — Find Your Seat, Split the Cost, and Ride Stress-Free.",
+      "🔥 Book a Seat, Share the Fare, and Reach Your Destination Faster with Verified Campus Autos.",
+      "🔥 Turn Every Ride into a Shared, Affordable, and Hassle-Free Journey.",
+      "🔥 Smarter Rides for Students — Less Waiting, Lower Fares, and Trusted Drivers.",
+    ];
 
-  // Pick a random message
-  const shareText = messages[Math.floor(Math.random() * messages.length)];
+    // Pick a random message
+    const shareText = messages[Math.floor(Math.random() * messages.length)];
 
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "Check out this website!",
-        text: shareText,
-        url: shareUrl,
-      });
-    } catch (err) {
-      console.error("Error sharing:", err);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check out this website!",
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        alert("Website link copied to clipboard!"); // simple fallback
+      } catch (err) {
+        alert("Failed to copy link.");
+      }
     }
-  } else {
-    try {
-      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-      alert("Website link copied to clipboard!"); // simple fallback
-    } catch (err) {
-      alert("Failed to copy link.");
-    }
-  }
-};
+  };
 
   const handleReport = async (rideId) => {
     if (!confirm("Report this as a fake ride? The creator may be banned."))
@@ -96,6 +99,19 @@ const Home = () => {
       fetchRides();
     } catch (err) {
       alert(err.response?.data?.message || "Report failed");
+    }
+  };
+
+  const handleSuggestionSubmit = async (e) => {
+    e.preventDefault();
+    if (!suggestionText.trim()) return;
+
+    try {
+      await API.post("/suggestions", { text: suggestionText });
+      setSuggestionText("");
+      setIsSubmitted(true);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to submit suggestion");
     }
   };
 
@@ -182,21 +198,16 @@ const Home = () => {
             ["pending", "pending_confirmation", "confirmed"].includes(b.status),
         ) && (
           <div className="flex justify-between">
-
-          <div className="mb-2 w-fit px-2 py-0.5 rounded text-xs font-bold bg-success/20 text-success">
-            
-            <i className="ri-check-line mr-1"></i>BOOKED
+            <div className="mb-2 w-fit px-2 py-0.5 rounded text-xs font-bold bg-success/20 text-success">
+              <i className="ri-check-line mr-1"></i>BOOKED
+            </div>
+            <Link
+              to={`/ride/${ride._id}`}
+              className="text-xs font-bold text-primary hover:text-primary-dark transition-colors no-underline"
+            >
+              <i className="ri-chat-3-fill mr-1"></i>Chat
+            </Link>
           </div>
-          <Link
-                          to={`/ride/${ride._id}`}
-                          className="text-xs font-bold text-primary hover:text-primary-dark transition-colors no-underline"
-                        >
-                          <i className="ri-chat-3-fill mr-1"></i>Chat
-                        </Link>
-          </div>
-     
-
-        
         )}
 
         {/* Driver or Student Info */}
@@ -280,25 +291,29 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-     {/* ============================================================
+      {/* ============================================================
    SECTION 1 — HERO SECTION (replace existing <section> hero)
    Includes: Feature announcements inline in hero banner
    ============================================================ */}
 
-<section className="bg-auto-black text-white py-16 relative overflow-hidden">
-  <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
-    <div className="mb-3 flex justify-center items-center">
-      <img src="/icons8-auto-rickshaw-94.png" alt="" className="w-30 h-30" />
-    </div>
-    <h1 className="text-4xl md:text-5xl font-extrabold mb-3 font-(--font-heading)">
-      <span className="text-primary">Ride</span>Mate
-    </h1>
-    <p className="text-lg text-gray-300 mb-4 max-w-xl mx-auto">
-      Auto Seat Booking and Sharing Platform For NITJians.
-      </p>
+      <section className="bg-auto-black text-white py-16 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+          <div className="mb-3 flex justify-center items-center">
+            <img
+              src="/icons8-auto-rickshaw-94.png"
+              alt=""
+              className="w-30 h-30"
+            />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-3 font-(--font-heading)">
+            <span className="text-primary">Ride</span>Mate
+          </h1>
+          <p className="text-lg text-gray-300 mb-4 max-w-xl mx-auto">
+            Auto Seat Booking and Sharing Platform For NITJians.
+          </p>
 
-    {/* Feature Highlight Banner */}
-    {/* <div className="mb-6 p-4 bg-yellow-500/20 text-yellow-200 rounded-xl border border-yellow-500/30 text-sm max-w-2xl mx-auto text-left space-y-3">
+          {/* Feature Highlight Banner */}
+          {/* <div className="mb-6 p-4 bg-yellow-500/20 text-yellow-200 rounded-xl border border-yellow-500/30 text-sm max-w-2xl mx-auto text-left space-y-3">
       <h3 className="font-bold flex items-center gap-2 text-base text-yellow-100">
         <i className="ri-sparkling-line"></i> What's New on RideMate
       </h3>
@@ -336,58 +351,60 @@ const Home = () => {
       </div>
     </div> */}
 
-    {/* Search Filter */}
-    <form onSubmit={handleSearch} className="max-w-xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-stretch gap-2 bg-white rounded-xl p-2">
-        <select
-          value={filterFrom}
-          onChange={(e) => setFilterFrom(e.target.value)}
-          className="flex-1 px-3 py-2.5 rounded-lg text-gray-800 outline-none border border-gray-200 text-sm bg-white"
-        >
-          <option value="">From (All)</option>
-          {LOCATIONS.map((loc) => (
-            <option key={loc} value={loc}>{loc}</option>
-          ))}
-        </select>
-        <select
-          value={filterTo}
-          onChange={(e) => setFilterTo(e.target.value)}
-          className="flex-1 px-3 py-2.5 rounded-lg text-gray-800 outline-none border border-gray-200 text-sm bg-white"
-        >
-          <option value="">To (All)</option>
-          {LOCATIONS.map((loc) => (
-            <option key={loc} value={loc}>{loc}</option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="bg-primary hover:bg-primary-dark text-auto-black px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors cursor-pointer border-none"
-        >
-          <i className="ri-search-line mr-1"></i>Search
-        </button>
-      </div>
-    </form>
+          {/* Search Filter */}
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-stretch gap-2 bg-white rounded-xl p-2">
+              <select
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-lg text-gray-800 outline-none border border-gray-200 text-sm bg-white"
+              >
+                <option value="">From (All)</option>
+                {LOCATIONS.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-lg text-gray-800 outline-none border border-gray-200 text-sm bg-white"
+              >
+                <option value="">To (All)</option>
+                {LOCATIONS.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="bg-primary hover:bg-primary-dark text-auto-black px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors cursor-pointer border-none"
+              >
+                <i className="ri-search-line mr-1"></i>Search
+              </button>
+            </div>
+          </form>
 
-    {!user && (
-      <div className="flex items-center justify-center gap-4 flex-wrap mt-8">
-        <Link
-          to="/student-register"
-          className="bg-primary hover:bg-primary-dark text-auto-black px-8 py-3 rounded-xl font-semibold text-lg transition-colors no-underline inline-flex items-center gap-2"
-        >
-          <i className="ri-user-add-line"></i> Register as Student
-        </Link>
-        <Link
-          to="/student-login"
-          className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-semibold text-lg transition-colors no-underline border border-white/20 inline-flex items-center gap-2"
-        >
-          <i className="ri-login-box-line"></i> Login
-        </Link>
-      </div>
-    )}
-  </div>
-</section>
-
-      
+          {!user && (
+            <div className="flex items-center justify-center gap-4 flex-wrap mt-8">
+              <Link
+                to="/student-register"
+                className="bg-primary hover:bg-primary-dark text-auto-black px-8 py-3 rounded-xl font-semibold text-lg transition-colors no-underline inline-flex items-center gap-2"
+              >
+                <i className="ri-user-add-line"></i> Register as Student
+              </Link>
+              <Link
+                to="/student-login"
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-semibold text-lg transition-colors no-underline border border-white/20 inline-flex items-center gap-2"
+              >
+                <i className="ri-login-box-line"></i> Login
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Active Rides */}
       <section className="py-15 max-w-7xl mx-auto mb-5 px-4">
@@ -439,164 +456,302 @@ const Home = () => {
         )}
       </section>
 
+      <section className="px-5">
+        <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
+          <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
+            <i className="ri-alert-line text-red-600"></i>
+            Important Notice
+          </h3>
 
-
-<section className="px-5"> 
-    <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
-  <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
-    <i className="ri-alert-line text-red-600"></i>
-    Important Notice
-  </h3>
-
-  <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
-    <li>
-      The app is still in development, so you may encounter bugs. Please report them to 
-      <span className="text-blue-600 font-semibold"> contact.nikhim@gmail.com</span>.
-    </li>
-    <li>
-      Do not create fake rides — this will result in your account being banned.
-    </li>
-    <li>
-      Sometimes rides may not be available due to a low or inactive user base. Please cooperate by creating rides whenever you travel.
-    </li>
-  </ul>
-</div>
-</section>
-
-
-<section className="w-full  bg-white py-10 ">
-  <div className="flex justify-center items-center flex-col gap-0 ">
-
-  <button
-    onClick={handleShare}
-    className="bg-gradient-to-r from-yellow-400 to-green-600 hover:from-yellow-500 hover:to-green-700 text-black font-semibold text-sm px-4 py-2 rounded-full shadow-md flex items-center transition-transform transform hover:scale-105"
-  >
-    <i className="ri-share-forward-line mr-2"></i>
-    Share & Invite Friends
-  </button>
-  </div>
-</section>
-
-{/* Features (only when not logged in) */}
-     
-  <section className="py-14 bg-white">
-    <div className="max-w-7xl mx-auto px-4">
-      <h2 className="text-3xl font-bold text-center mb-2 font-(--font-heading)">
-        How It Works
-      </h2>
-      <p className="text-center text-gray-400 text-sm mb-10">Everything you need for safe, easy campus travel</p>
-
-      {/* Core Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
-        <div className="text-center p-6  rounded-2xl">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <img width="64" height="64" src="https://img.icons8.com/glyph-neue/64/point-objects.png" alt="Find" />
-          </div>
-          <h3 className="text-lg font-bold mb-2">Find a Ride</h3>
-          <p className="text-gray-500 text-sm">Search by pickup and destination. See auto rides and student-shared rides together.</p>
+          <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
+            <li>
+              The app is still in development, so you may encounter bugs. Please
+              report them to
+              <span className="text-blue-600 font-semibold">
+                {" "}
+                contact.nikhim@gmail.com
+              </span>
+              .
+            </li>
+            <li>
+              Do not create fake rides — this will result in your account being
+              banned.
+            </li>
+            <li>
+              Sometimes rides may not be available due to a low or inactive user
+              base. Please cooperate by creating rides whenever you travel.
+            </li>
+          </ul>
         </div>
-        <div className="text-center p-6  rounded-2xl">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <img width="48" height="48" src="https://img.icons8.com/color-glass/48/booking.png" alt="Book" />
-          </div>
-          <h3 className="text-lg font-bold mb-2">Book Your Seat</h3>
-          <p className="text-gray-500 text-sm">Reserve instantly. Pay via UPI to the driver or ride creator on arrival.</p>
-        </div>
-        <div className="text-center p-6 rounded-2xl">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <img width="94" height="94" src="https://img.icons8.com/3d-fluency/94/map-marker.png" alt="Ride" />
-          </div>
-          <h3 className="text-lg font-bold mb-2">Enjoy the Ride</h3>
-          <p className="text-gray-500 text-sm">Travel with verified college autos or trusted student ridemates. Simple!</p>
-        </div>
-      </div>
+      </section>
 
-      {/* Feature Cards */}
-      <h2 className="text-2xl font-bold text-center mb-8 font-(--font-heading)">
-        Platform Features
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-
-        {/* Ridesharing */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3"><img src="/car-sharing.png" alt="" className="w-20 h-18"/></div>
-          <h3 className="font-bold text-gray-800 mb-1">Student Ridesharing</h3>
-          <p className="text-gray-500 text-sm">Students can create up to 2 rides per day. Your name is shown on the ride card. Booked students see your phone/email in ride details.</p>
-          <span className="inline-block mt-3 text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-1 rounded-lg">Max 2/day</span>
+      <section className="w-full  bg-white py-10 ">
+        <div className="flex justify-center items-center flex-col gap-0 ">
+          <button
+            onClick={handleShare}
+            className="bg-gradient-to-r from-yellow-400 to-green-600 hover:from-yellow-500 hover:to-green-700 text-black font-semibold text-sm px-4 py-2 rounded-full shadow-md flex items-center transition-transform transform hover:scale-105"
+          >
+            <i className="ri-share-forward-line mr-2"></i>
+            Share & Invite Friends
+          </button>
         </div>
+      </section>
 
-        {/* Live Chat */}
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/sad-chat-3d-icon-png-download-11860445.png" alt="" className="w-20 h-18"/>
+      {/* Features (only when not logged in) */}
+
+      <section className="py-14 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-2 font-(--font-heading)">
+            How It Works
+          </h2>
+          <p className="text-center text-gray-400 text-sm mb-10">
+            Everything you need for safe, easy campus travel
+          </p>
+
+          {/* Core Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+            <div className="text-center p-6  rounded-2xl">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <img
+                  width="64"
+                  height="64"
+                  src="https://img.icons8.com/glyph-neue/64/point-objects.png"
+                  alt="Find"
+                />
               </div>
-          <h3 className="font-bold text-gray-800 mb-1">Live Ride Chat</h3>
-          <p className="text-gray-500 text-sm">Booked students and the ride creator can chat in real time. Only text and emojis. Messages auto-expire in 3 hours.</p>
-          <span className="inline-block mt-3 text-xs font-bold bg-blue-400 text-white px-2.5 py-1 rounded-lg">Booked riders only</span>
+              <h3 className="text-lg font-bold mb-2">Find a Ride</h3>
+              <p className="text-gray-500 text-sm">
+                Search by pickup and destination. See auto rides and
+                student-shared rides together.
+              </p>
+            </div>
+            <div className="text-center p-6  rounded-2xl">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <img
+                  width="48"
+                  height="48"
+                  src="https://img.icons8.com/color-glass/48/booking.png"
+                  alt="Book"
+                />
+              </div>
+              <h3 className="text-lg font-bold mb-2">Book Your Seat</h3>
+              <p className="text-gray-500 text-sm">
+                Reserve instantly. Pay via UPI to the driver or ride creator on
+                arrival.
+              </p>
+            </div>
+            <div className="text-center p-6 rounded-2xl">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <img
+                  width="94"
+                  height="94"
+                  src="https://img.icons8.com/3d-fluency/94/map-marker.png"
+                  alt="Ride"
+                />
+              </div>
+              <h3 className="text-lg font-bold mb-2">Enjoy the Ride</h3>
+              <p className="text-gray-500 text-sm">
+                Travel with verified college autos or trusted student ridemates.
+                Simple!
+              </p>
+            </div>
+          </div>
+
+          {/* Feature Cards */}
+          <h2 className="text-2xl font-bold text-center mb-8 font-(--font-heading)">
+            Platform Features
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Ridesharing */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
+              <div className="text-3xl mb-3">
+                <img src="/car-sharing.png" alt="" className="w-20 h-18" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">
+                Student Ridesharing
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Students can create up to 2 rides per day. Your name is shown on
+                the ride card. Booked students see your phone/email in ride
+                details.
+              </p>
+              <span className="inline-block mt-3 text-xs font-bold bg-yellow-400 text-yellow-900 px-2.5 py-1 rounded-lg">
+                Max 2/day
+              </span>
+            </div>
+
+            {/* Live Chat */}
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+              <div className="text-3xl mb-3">
+                <img
+                  src="https://cdn3d.iconscout.com/3d/premium/thumb/sad-chat-3d-icon-png-download-11860445.png"
+                  alt=""
+                  className="w-20 h-18"
+                />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">Live Ride Chat</h3>
+              <p className="text-gray-500 text-sm">
+                Booked students and the ride creator can chat in real time. Only
+                text and emojis. Messages auto-expire in 3 hours.
+              </p>
+              <span className="inline-block mt-3 text-xs font-bold bg-blue-400 text-white px-2.5 py-1 rounded-lg">
+                Booked riders only
+              </span>
+            </div>
+
+            {/* Report */}
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
+              <div className="text-3xl mb-3">
+                <img
+                  src="https://cdn3d.iconscout.com/3d/premium/thumb/alert-sign-3d-icon-png-download-11009210.png"
+                  alt=""
+                  className="w-20 h-18"
+                />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">
+                Fake Ride Reports
+              </h3>
+              <p className="text-gray-500 text-sm">
+                2–3 reports on a ride = 7-day posting ban. Repeated abuse (2–3
+                bans/month) = permanent block. Keeps the platform safe.
+              </p>
+              <span className="inline-block mt-3 text-xs font-bold bg-red-400 text-white px-2.5 py-1 rounded-lg">
+                Auto-moderation
+              </span>
+            </div>
+
+            {/* Update Ride */}
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+              <div className="text-3xl mb-3">
+                <img
+                  src="https://cdn3d.iconscout.com/3d/premium/thumb/clipboard-and-pencil-3d-icon-png-download-7250815.png"
+                  alt=""
+                  className="w-20 h-16"
+                />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">Manage Your Ride</h3>
+              <p className="text-gray-500 text-sm">
+                Edit departure time, seat count, or cancel your posted ride —
+                just like a driver managing a trip in real time.
+              </p>
+              <span className="inline-block mt-3 text-xs font-bold bg-green-500 text-white px-2.5 py-1 rounded-lg">
+                Creator controls
+              </span>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Report */}
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/alert-sign-3d-icon-png-download-11009210.png" alt="" className="w-20 h-18"/></div>
-          <h3 className="font-bold text-gray-800 mb-1">Fake Ride Reports</h3>
-          <p className="text-gray-500 text-sm">2–3 reports on a ride = 7-day posting ban. Repeated abuse (2–3 bans/month) = permanent block. Keeps the platform safe.</p>
-          <span className="inline-block mt-3 text-xs font-bold bg-red-400 text-white px-2.5 py-1 rounded-lg">Auto-moderation</span>
+      {/* Anonymous Suggestion Box */}
+      <section className="py-14 bg-white px-5">
+        <div className="max-w-3xl mx-auto bg-yellow-400 p-8 rounded-sm mx-4 border-4 border-black shadow-[8px_8px_0px_#0D0D0D]">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-3xl font-black mb-2 uppercase font-[var(--font-heading)] flex items-center justify-center md:justify-start gap-2">
+                <i className="ri-mail-send-line"></i> Suggestion Box
+              </h2>
+              <p className="text-black font-semibold mb-4 text-sm">
+                Got an idea? Found a bug? Want a new feature? Tell us! 100%
+                Anonymous.
+              </p>
+            </div>
+            {isSubmitted && !videoEnded ? (
+              <div className="flex-1 w-full flex justify-center items-center">
+                <video
+                  src="/Video_Generation_With_Specific_Layout.mp4"
+                  autoPlay
+                  onEnded={() => setVideoEnded(true)}
+                  className="w-full rounded-sm border-2 border-black shadow-[4px_4px_0px_#0D0D0D]"
+                />
+              </div>
+            ) : isSubmitted && videoEnded ? (
+              <div className="flex-1 w-full flex flex-col justify-center items-center py-10 bg-white border-4 border-black rounded-sm shadow-[6px_6px_0px_#0D0D0D]">
+                <i className="ri-checkbox-circle-fill text-6xl text-green-500 mb-3 drop-shadow-[2px_2px_0_#000]"></i>
+                <p className="text-xl font-black uppercase tracking-wider text-black font-[var(--font-heading)] text-center">
+                  Submitted Successfully!
+                </p>
+                <p className="text-gray-700 font-bold text-sm mt-2">
+                  Thank you for helping us to improve.
+                </p>
+                {/* <button
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    setVideoEnded(false);
+                  }}
+                  className="mt-6 bg-black text-white px-6 py-3 rounded-sm font-black uppercase text-sm border-2 border-black hover:bg-gray-800 hover:-translate-y-1 transition-transform cursor-pointer"
+                >
+                  Submit Another
+                </button> */}
+              </div>
+            ) : (
+              <form
+                onSubmit={handleSuggestionSubmit}
+                className="flex-1 w-full space-y-3"
+              >
+                <textarea
+                  required
+                  rows="3"
+                  value={suggestionText}
+                  onChange={(e) => setSuggestionText(e.target.value)}
+                  placeholder="Write your suggestion here..."
+                  className="w-full px-4 py-3 bg-white border-2 border-black rounded-sm outline-none focus:ring-4 focus:ring-black placeholder-gray-500 font-medium resize-none"
+                ></textarea>
+                <button
+                  type="submit"
+                  className="w-full bg-black text-white hover:bg-gray-800 hover:-translate-y-1 transition-transform px-6 py-3 rounded-sm font-black text-lg cursor-pointer border-none uppercase tracking-wider"
+                >
+                  Submit
+                </button>
+              </form>
+            )}
+          </div>
         </div>
-
-        {/* Update Ride */}
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-          <div className="text-3xl mb-3"><img src="https://cdn3d.iconscout.com/3d/premium/thumb/clipboard-and-pencil-3d-icon-png-download-7250815.png" alt="" className="w-20 h-16"/></div>
-          <h3 className="font-bold text-gray-800 mb-1">Manage Your Ride</h3>
-          <p className="text-gray-500 text-sm">Edit departure time, seat count, or cancel your posted ride — just like a driver managing a trip in real time.</p>
-          <span className="inline-block mt-3 text-xs font-bold bg-green-500 text-white px-2.5 py-1 rounded-lg">Creator controls</span>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
+      </section>
 
       <section className="mb-10 px-5">
         <Authorised />
       </section>
 
+      <section className="px-5">
+        <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
+          <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
+            <i className="ri-alert-line text-red-600"></i>
+            Important Notice
+          </h3>
 
+          <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
+            <li>
+              The app is still in development, so you may encounter bugs. Please
+              report them to
+              <span className="text-blue-600 font-semibold">
+                {" "}
+                contact.nikhim@gmail.com
+              </span>
+              .
+            </li>
+            <li>
+              Do not create fake rides — this will result in your account being
+              banned.
+            </li>
+            <li>
+              Sometimes rides may not be available due to a low or inactive user
+              base. Please cooperate by creating rides whenever you travel.
+            </li>
+          </ul>
+        </div>
+      </section>
 
-
-
-<section className="px-5"> 
-    <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
-  <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
-    <i className="ri-alert-line text-red-600"></i>
-    Important Notice
-  </h3>
-
-  <ul className="space-y-3 text-sm text-gray-800 font-medium list-disc list-inside">
-    <li>
-      The app is still in development, so you may encounter bugs. Please report them to 
-      <span className="text-blue-600 font-semibold"> contact.nikhim@gmail.com</span>.
-    </li>
-    <li>
-      Do not create fake rides — this will result in your account being banned.
-    </li>
-    <li>
-      Sometimes rides may not be available due to a low or inactive user base. Please cooperate by creating rides whenever you travel.
-    </li>
-  </ul>
-</div>
-</section>
-
-<section className="w-full py-10 ">
-  <div className="flex justify-center items-center flex-col gap-0 ">
-
-  <button
-    onClick={handleShare}
-    className="bg-gradient-to-r from-yellow-400 to-green-600 hover:from-yellow-500 hover:to-green-700 text-black font-semibold text-sm px-4 py-2 rounded-full shadow-md flex items-center transition-transform transform hover:scale-105"
-  >
-    <i className="ri-share-forward-line mr-2"></i>
-    Share & Invite Friends
-  </button>
-  </div>
-</section>
+      <section className="w-full py-10 ">
+        <div className="flex justify-center items-center flex-col gap-0 ">
+          <button
+            onClick={handleShare}
+            className="bg-gradient-to-r from-yellow-400 to-green-600 hover:from-yellow-500 hover:to-green-700 text-black font-semibold text-sm px-4 py-2 rounded-full shadow-md flex items-center transition-transform transform hover:scale-105"
+          >
+            <i className="ri-share-forward-line mr-2"></i>
+            Share & Invite Friends
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

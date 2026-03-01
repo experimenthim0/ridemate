@@ -78,15 +78,42 @@ app.get("/api/public-stats", async (req, res) => {
   try {
     const Driver = require("./models/Driver");
     const Student = require("./models/Student");
-    const totalDrivers = await Driver.countDocuments();
-    const totalStudents = await Student.countDocuments();
+    const SystemStat = require("./models/SystemStat");
+
+    const [totalDrivers, totalStudents, stat] = await Promise.all([
+      Driver.countDocuments(),
+      Student.countDocuments(),
+      SystemStat.findOne(),
+    ]);
+
+    const totalRidesCreated = stat ? stat.totalRidesCreated : 0;
 
     res.json({
       totalUsers: totalDrivers + totalStudents,
       activeStudents: totalConnectedStudents, // using real-time socket count
+      totalRidesCreated, // persistent stats counter
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching stats" });
+  }
+});
+
+// Suggestions endpoint
+app.post("/api/suggestions", async (req, res) => {
+  try {
+    const Suggestion = require("./models/Suggestion");
+    const { text } = req.body;
+
+    if (!text || text.trim().length === 0) {
+      return res.status(400).json({ message: "Suggestion text is required" });
+    }
+
+    const suggestion = new Suggestion({ text });
+    await suggestion.save();
+
+    res.status(201).json({ message: "Suggestion submitted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving suggestion" });
   }
 });
 
@@ -98,11 +125,20 @@ const Booking = require("./models/Booking");
 
 const cleanupOldRides = async () => {
   try {
-    const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    // Regular driver rides - keep for 12 hours
+    const driverCutoff = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    // Student sharing rides - keep for 7 days (7 * 24 * 60 * 60 * 1000)
+    const studentCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // Find all old rides based on their type and cutoff
     const oldRides = await Ride.find({
       status: "completed",
-      updatedAt: { $lt: cutoff },
+      $or: [
+        { type: { $ne: "student_sharing" }, updatedAt: { $lt: driverCutoff } }, // Driver rides
+        { type: "student_sharing", updatedAt: { $lt: studentCutoff } }, // Student rides
+      ],
     });
+
     for (const ride of oldRides) {
       await Booking.deleteMany({ ride_id: ride._id });
       await Ride.findByIdAndDelete(ride._id);

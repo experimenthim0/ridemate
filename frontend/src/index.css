@@ -28,8 +28,6 @@
   --font-body: "Inter", sans-serif;
 }
 
-
-
 body {
   font-family: var(--font-body);
   background-color: var(--color-gray-50);
@@ -46,32 +44,175 @@ h6 {
   font-family: var(--font-heading);
 }
 
-/* Auto Rickshaw Loading Animation */
-@keyframes drive {
-  0% {
-    transform: translateX(-200px);
-  }
-  100% {
-    transform: translateX(calc(100% + 200px));
-  }
-}
+/* ============================================
+   LOADER ANIMATIONS — Funny Auto Scene
+   ============================================ */
 
-@keyframes bounce-wheel {
+/* Auto rickshaw — bounces while staying centered */
+@keyframes autoBounce {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+.loader-auto {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: autoBounce 0.5s ease-in-out infinite;
+  z-index: 10;
+}
+
+/* Road center line dashes scrolling */
+@keyframes roadScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-88px);
+  }
+}
+
+.loader-road-lines {
+  animation: roadScroll 0.6s linear infinite;
+}
+
+/* Clouds floating */
+@keyframes cloudFloat {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-300px);
+  }
+}
+
+.loader-cloud {
+  position: absolute;
+  width: 50px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  z-index: 1;
+}
+.loader-cloud::before {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  top: -12px;
+  left: 10px;
+}
+.loader-cloud::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  top: -8px;
+  left: 28px;
+}
+
+.loader-cloud-1 {
+  top: 10px;
+  right: -50px;
+  animation: cloudFloat 6s linear infinite;
+}
+.loader-cloud-2 {
+  top: 22px;
+  right: -180px;
+  animation: cloudFloat 8s linear infinite;
+  opacity: 0.7;
+  transform: scale(0.7);
+}
+
+/* Sun pulsing */
+.loader-sun {
+  position: absolute;
+  top: 6px;
+  left: 20px;
+  width: 24px;
+  height: 24px;
+  background: #fbbf24;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+  animation: sunPulse 2s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes sunPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
   }
   50% {
-    transform: translateY(-3px);
+    box-shadow: 0 0 35px rgba(251, 191, 36, 0.8);
   }
 }
 
-.auto-loader {
-  animation: drive 2s linear infinite;
+/* Smoke particles from exhaust */
+@keyframes smokeRise {
+  0% {
+    opacity: 0.6;
+    transform: translate(0, 0) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-30px, -25px) scale(1.5);
+  }
+}
+.loader-smoke {
+  position: absolute;
+  bottom: 8px;
+  left: -8px;
+  width: 10px;
+  height: 10px;
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 50%;
+  animation: smokeRise 1.2s ease-out forwards;
+  pointer-events: none;
 }
 
-.wheel-spin {
-  animation: bounce-wheel 0.3s ease-in-out infinite;
+/* Scenery (trees) scrolling past */
+@keyframes sceneryScroll {
+  0% {
+    transform: translateX(100px);
+  }
+  100% {
+    transform: translateX(-400px);
+  }
+}
+.loader-scenery {
+  position: absolute;
+  bottom: 32px;
+  display: flex;
+  animation: sceneryScroll 4s linear infinite;
+  z-index: 2;
+}
+
+/* Bouncing dots below the scene */
+@keyframes loaderBounce {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-6px) scale(1.15);
+  }
+}
+
+/* Legacy — keep for ProtectedRoute usage */
+.auto-loader {
+  animation: autoBounce 0.5s ease-in-out infinite;
 }
 
 /* Status badges */
@@ -119,22 +260,17 @@ h6 {
   background: var(--color-gray-500);
 }
 
+.table-title {
+  font-family: "Rajdhani", sans-serif;
+  letter-spacing: 0.12em;
+}
 
- 
-    .table-title {
-      font-family: 'Rajdhani', sans-serif;
-      letter-spacing: 0.12em;
-    }
-   
-    .badge {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-    }
-    .header-cell {
-      font-family: 'Rajdhani', sans-serif;
-      letter-spacing: 0.1em;
-    }
-
-
-    
+.badge {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.header-cell {
+  font-family: "Rajdhani", sans-serif;
+  letter-spacing: 0.1em;
+}

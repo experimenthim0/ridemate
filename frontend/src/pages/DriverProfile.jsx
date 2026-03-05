@@ -8,6 +8,21 @@ const DriverProfile = () => {
   const [upiId, setUpiId] = useState("");
   const [editing, setEditing] = useState(false);
   const [msg, setMsg] = useState("");
+  const [msgType, setMsgType] = useState("success");
+
+  // Password change
+  const [showPwChange, setShowPwChange] = useState(false);
+  const [pwForm, setPwForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const flash = (message, type = "success") => {
+    setMsg(message);
+    setMsgType(type);
+    setTimeout(() => setMsg(""), 4000);
+  };
 
   const fetchProfile = async () => {
     try {
@@ -27,12 +42,31 @@ const DriverProfile = () => {
   const handleUpdateUPI = async () => {
     try {
       await API.put("/driver/profile", { upi_id: upiId });
-      setMsg("UPI ID updated!");
+      flash("UPI ID updated!");
       setEditing(false);
       await fetchProfile();
-      setTimeout(() => setMsg(""), 3000);
     } catch (err) {
-      setMsg(err.response?.data?.message || "Failed");
+      flash(err.response?.data?.message || "Failed", "error");
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      return flash("Passwords do not match", "error");
+    }
+    if (pwForm.newPassword.length < 6) {
+      return flash("Password must be at least 6 characters", "error");
+    }
+    try {
+      const { data } = await API.put("/auth/change-password", {
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+      });
+      flash(data.message);
+      setShowPwChange(false);
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err) {
+      flash(err.response?.data?.message || "Password change failed", "error");
     }
   };
 
@@ -49,7 +83,9 @@ const DriverProfile = () => {
       </h1>
 
       {msg && (
-        <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium bg-success/10 text-success">
+        <div
+          className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium ${msgType === "error" ? "bg-error/10 text-error" : "bg-success/10 text-success"}`}
+        >
           {msg}
         </div>
       )}
@@ -143,6 +179,72 @@ const DriverProfile = () => {
             </p>
           </div>
         )}
+
+        {/* Password Change */}
+        <div className="border-t border-gray-100 pt-4 mb-4 mt-6">
+          {showPwChange ? (
+            <div className="space-y-3">
+              <h3 className="font-bold text-sm font-[var(--font-heading)]">
+                🔒 Change Password
+              </h3>
+              <input
+                type="password"
+                placeholder="Current Password"
+                value={pwForm.currentPassword}
+                onChange={(e) =>
+                  setPwForm({ ...pwForm, currentPassword: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+              <input
+                type="password"
+                placeholder="New Password"
+                value={pwForm.newPassword}
+                onChange={(e) =>
+                  setPwForm({ ...pwForm, newPassword: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                value={pwForm.confirmPassword}
+                onChange={(e) =>
+                  setPwForm({ ...pwForm, confirmPassword: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePasswordChange}
+                  className="bg-success text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer border-none"
+                >
+                  Change
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPwChange(false);
+                    setPwForm({
+                      currentPassword: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    });
+                  }}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm cursor-pointer border-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowPwChange(true)}
+              className="w-full bg-gray-100 text-gray-700 py-2 rounded-xl text-sm font-medium cursor-pointer border-none hover:bg-gray-200 transition-colors"
+            >
+              🔒 Change Password
+            </button>
+          )}
+        </div>
 
         {!profile.upi_id && (
           <div className="bg-primary/10 text-primary-dark rounded-xl p-4 text-center text-sm">

@@ -16,7 +16,6 @@ const Navbar = () => {
   return (
     <nav className="bg-auto-black text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 no-underline">
           <img
@@ -36,38 +35,53 @@ const Navbar = () => {
               <Link
                 to="/student-login"
                 className="bg-neutral-700 px-3 py-1 rounded-lg text-sm hover:text-primary"
-              > <i className="ri-group-line mr-1"></i>
+              >
+                {" "}
+                <i className="ri-group-line mr-1"></i>
                 Student
               </Link>
               <Link
                 to="/driver-login"
                 className="bg-neutral-700 px-3 py-1 rounded-lg text-sm hover:text-primary"
-              ><i className="ri-taxi-line mr-1"></i>
+              >
+                <i className="ri-taxi-line mr-1"></i>
                 Driver
               </Link>
             </>
           ) : (
             <>
               {role === "student" && (
-                <Link
-                  to="/student-dashboard"
-                  className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-                ><i className="ri-dashboard-line mr-1"></i>
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    to="/student-dashboard"
+                    className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
+                  >
+                    <i className="ri-dashboard-line mr-1"></i>
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/student-profile"
+                    className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
+                  >
+                    <i className="ri-user-line mr-1"></i>
+                    Profile
+                  </Link>
+                </>
               )}
               {role === "driver" && (
                 <>
                   <Link
                     to="/driver-dashboard"
                     className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-                  ><i className="ri-dashboard-line mr-1"></i>
+                  >
+                    <i className="ri-dashboard-line mr-1"></i>
                     Dashboard
                   </Link>
                   <Link
                     to="/driver-profile"
                     className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-                  ><i className="ri-user-line mr-1"></i>
+                  >
+                    <i className="ri-user-line mr-1"></i>
                     Profile
                   </Link>
                 </>
@@ -76,22 +90,36 @@ const Navbar = () => {
                 <Link
                   to="/admin-dashboard"
                   className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-                ><i className="ri-dashboard-line mr-1"></i>
+                >
+                  <i className="ri-dashboard-line mr-1"></i>
                   Dashboard
+                </Link>
+              )}
+
+              {(role === "student" || role === "driver") && (
+                <Link
+                  to="/ride-requests"
+                  className="bg-neutral-700 px-3 py-1 rounded-lg text-sm text-primary font-bold"
+                >
+                  <i className="ri-question-answer-line mr-1"></i>
+                  Requests
                 </Link>
               )}
 
               <Link
                 to="/complaints"
                 className="bg-neutral-700 px-3 py-1 rounded-lg text-sm"
-              ><i className="ri-feedback-line mr-1"></i>
+              >
+                <i className="ri-feedback-line mr-1"></i>
                 Complaints
               </Link>
 
               <button
                 onClick={handleLogout}
                 className="bg-error px-3 py-1 rounded-lg text-sm"
-              > <i className="ri-logout-box-r-line mr-1"></i>
+              >
+                {" "}
+                <i className="ri-logout-box-r-line mr-1"></i>
                 Logout
               </button>
             </>
@@ -116,27 +144,40 @@ const Navbar = () => {
                 to="/student-login"
                 onClick={() => setIsOpen(false)}
                 className="bg-neutral-700 px-3 py-2 rounded-lg"
-              ><i className="ri-group-line mr-1"></i>
+              >
+                <i className="ri-group-line mr-1"></i>
                 Student
               </Link>
               <Link
                 to="/driver-login"
                 onClick={() => setIsOpen(false)}
                 className="bg-neutral-700 px-3 py-2 rounded-lg"
-              ><i className="ri-taxi-line mr-1"></i>
+              >
+                <i className="ri-taxi-line mr-1"></i>
                 Driver
               </Link>
             </>
           ) : (
             <>
               {role === "student" && (
-                <Link
-                  to="/student-dashboard"
-                  onClick={() => setIsOpen(false)}
-                  className="bg-neutral-700 px-3 py-2 rounded-lg"
-                ><i className="ri-dashboard-line mr-1"></i>
-                  Dashboard
-                </Link>
+                <>
+                  <Link
+                    to="/student-dashboard"
+                    onClick={() => setIsOpen(false)}
+                    className="bg-neutral-700 px-3 py-2 rounded-lg"
+                  >
+                    <i className="ri-dashboard-line mr-1"></i>
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/student-profile"
+                    onClick={() => setIsOpen(false)}
+                    className="bg-neutral-700 px-3 py-2 rounded-lg"
+                  >
+                    <i className="ri-user-line mr-1"></i>
+                    Profile
+                  </Link>
+                </>
               )}
 
               {role === "driver" && (
@@ -145,14 +186,16 @@ const Navbar = () => {
                     to="/driver-dashboard"
                     onClick={() => setIsOpen(false)}
                     className="bg-neutral-700 px-3 py-2 rounded-lg"
-                  ><i className="ri-dashboard-line mr-1"></i>
+                  >
+                    <i className="ri-dashboard-line mr-1"></i>
                     Dashboard
                   </Link>
                   <Link
                     to="/driver-profile"
                     onClick={() => setIsOpen(false)}
                     className="bg-neutral-700 px-3 py-2 rounded-lg"
-                  ><i className="ri-user-line mr-1"></i>
+                  >
+                    <i className="ri-user-line mr-1"></i>
                     Profile
                   </Link>
                 </>
@@ -163,8 +206,20 @@ const Navbar = () => {
                   to="/admin-dashboard"
                   onClick={() => setIsOpen(false)}
                   className="bg-neutral-700 px-3 py-2 rounded-lg"
-                ><i className="ri-dashboard-line mr-1"></i>
+                >
+                  <i className="ri-dashboard-line mr-1"></i>
                   Dashboard
+                </Link>
+              )}
+
+              {(role === "student" || role === "driver") && (
+                <Link
+                  to="/ride-requests"
+                  onClick={() => setIsOpen(false)}
+                  className="bg-neutral-700 px-3 py-2 rounded-lg text-primary font-bold"
+                >
+                  <i className="ri-question-answer-line mr-1"></i>
+                  Requests
                 </Link>
               )}
 
@@ -172,14 +227,16 @@ const Navbar = () => {
                 to="/complaints"
                 onClick={() => setIsOpen(false)}
                 className="bg-neutral-700 px-3 py-2 rounded-lg"
-              ><i className="ri-feedback-line mr-1"></i>
+              >
+                <i className="ri-feedback-line mr-1"></i>
                 Complaints
               </Link>
 
               <button
                 onClick={handleLogout}
                 className="bg-error px-3 py-2 rounded-lg"
-              ><i className="ri-logout-box-r-line mr-1"></i>
+              >
+                <i className="ri-logout-box-r-line mr-1"></i>
                 Logout
               </button>
             </>

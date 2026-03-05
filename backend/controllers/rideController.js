@@ -7,16 +7,6 @@ const getPublicActiveRides = async (req, res) => {
     const { from, to } = req.query;
 
     const query = { status: "active" };
-    // Auto-deactivate rides older than 3 hours
-    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    await Ride.updateMany(
-      {
-        type: "student_sharing",
-        status: "active",
-        createdAt: { $lt: threeHoursAgo },
-      },
-      { $set: { status: "completed" } },
-    );
 
     // Fetch all active rides
     const rides = await Ride.find(query)
@@ -40,12 +30,12 @@ const getPublicActiveRides = async (req, res) => {
   }
 };
 
-// Get ride details (PUBLIC)
+// Get ride details (PUBLIC — limited info, no sensitive data)
 const getPublicRideDetails = async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.id)
-      .populate("driver_id", "name auto_number phone upi_id")
-      .populate("student_id", "name phone email");
+      .populate("driver_id", "name auto_number")
+      .populate("student_id", "name");
 
     if (!ride) {
       return res.status(404).json({ message: "Ride not found" });

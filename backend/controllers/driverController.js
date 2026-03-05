@@ -4,12 +4,20 @@ const Student = require("../models/Student");
 const Message = require("../models/Message");
 const DriverBlockedStudent = require("../models/DriverBlockedStudent");
 const SystemStat = require("../models/SystemStat");
+const RecurringRide = require("../models/RecurringRide");
 const { generateUPIQR } = require("../utils/qrGenerator");
 
 // Create ride
 const createRide = async (req, res) => {
   try {
-    const { from, to, total_seats, departure_time, departure_date } = req.body;
+    const {
+      from,
+      to,
+      total_seats,
+      departure_time,
+      departure_date,
+      scheduled_date,
+    } = req.body;
 
     if (!from || !to || !total_seats) {
       return res
@@ -23,16 +31,18 @@ const createRide = async (req, res) => {
         .json({ message: "From and To locations cannot be the same" });
     }
 
-    // Check if driver already has an active ride
-    const activeRide = await Ride.findOne({
-      driver_id: req.user._id,
-      status: "active",
-    });
-    if (activeRide) {
-      return res.status(400).json({
-        message:
-          "You already have an active ride. End it before creating a new one.",
+    // Check if driver already has an active ride (skip check for scheduled rides)
+    if (!scheduled_date) {
+      const activeRide = await Ride.findOne({
+        driver_id: req.user._id,
+        status: "active",
       });
+      if (activeRide) {
+        return res.status(400).json({
+          message:
+            "You already have an active ride. End it before creating a new one.",
+        });
+      }
     }
 
     const ride = await Ride.create({
@@ -42,6 +52,9 @@ const createRide = async (req, res) => {
       total_seats,
       departure_time: departure_time || "",
       departure_date: departure_date || "",
+      is_scheduled: !!scheduled_date,
+      scheduled_date: scheduled_date || null,
+      status: scheduled_date ? "scheduled" : "active",
     });
 
     // Increment global system stat
@@ -462,7 +475,94 @@ const postRideMessage = async (req, res) => {
 
     await message.populate("sender_id", "name");
 
+    // Emit real-time message to ride room
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`ride:${rideId}`).emit("newMessage", message);
+    }
+
     res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a recurring ride template
+const createRecurringRide = async (req, res) => {
+  try {
+    const { from_location, to_location, total_seats, departure_time, days } =
+      req.body;
+
+    if (
+      !from_location ||
+      !to_location ||
+      !total_seats ||
+      !departure_time ||
+      !days ||
+      !days.length
+    ) {
+      return res.status(400).json({
+        message: "All fields are required (from, to, seats, time, days)",
+      });
+    }
+
+    if (from_location === to_location) {
+      return res
+        .status(400)
+        .json({ message: "From and To cannot be the same" });
+    }
+
+    // Max 3 recurring templates per driver
+    const count = await RecurringRide.countDocuments({
+      driver_id: req.user._id,
+      is_active: true,
+    });
+    if (count >= 3) {
+      return res
+        .status(400)
+        .json({ message: "You can have at most 3 active recurring rides" });
+    }
+
+    const recurring = await RecurringRide.create({
+      driver_id: req.user._id,
+      from_location,
+      to_location,
+      total_seats,
+      departure_time,
+      days,
+    });
+
+    res.status(201).json({ message: "Recurring ride created", recurring });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get my recurring rides
+const getRecurringRides = async (req, res) => {
+  try {
+    const recurring = await RecurringRide.find({
+      driver_id: req.user._id,
+    }).sort("-createdAt");
+    res.json(recurring);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete (deactivate) a recurring ride
+const deleteRecurringRide = async (req, res) => {
+  try {
+    const recurring = await RecurringRide.findById(req.params.id);
+    if (!recurring) {
+      return res.status(404).json({ message: "Recurring ride not found" });
+    }
+    if (recurring.driver_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not your recurring ride" });
+    }
+
+    await RecurringRide.findByIdAndDelete(req.params.id);
+    res.json({ message: "Recurring ride deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -485,4 +585,7 @@ module.exports = {
   updateRideTime,
   getRideMessages,
   postRideMessage,
+  createRecurringRide,
+  getRecurringRides,
+  deleteRecurringRide,
 };

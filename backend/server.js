@@ -11,18 +11,52 @@ connectDB();
 
 const app = express();
 
+// Bug 1.12: Rate limiting
+const rateLimit = require("express-rate-limit");
+
+// General rate limit — 100 requests per 15 minutes per IP
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Strict rate limit for auth routes — 10 requests per 15 minutes per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    message:
+      "Too many login/register attempts, please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://ridemate.nikhim.me",
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api", generalLimiter);
 
 // Routes
-app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/driver", require("./routes/driverRoutes"));
 app.use("/api/student", require("./routes/studentRoutes"));
 app.use("/api/complaints", require("./routes/complaintRoutes"));
 app.use("/api/rides", require("./routes/rideRoutes"));
+app.use("/api/ride-requests", require("./routes/rideRequestRoutes"));
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -35,7 +69,11 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // allow all or restrict to your frontend domain in production
+    origin: [
+      "https://ridemate.nikhim.me",
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ], // allow all or restrict to your frontend domain in production
     methods: ["GET", "POST"],
   },
 });
@@ -61,11 +99,22 @@ const broadcastStats = async () => {
   }
 };
 
+// Make io accessible to controllers via req.app.get('io')
+app.set("io", io);
+
 io.on("connection", (socket) => {
-  // We can track total socket connections generically,
-  // or listen for a specific event when a user "logs in"
   totalConnectedStudents++;
   broadcastStats();
+
+  // Chat rooms: join a ride's chat room
+  socket.on("joinRide", (rideId) => {
+    socket.join(`ride:${rideId}`);
+  });
+
+  // Leave a ride's chat room
+  socket.on("leaveRide", (rideId) => {
+    socket.leave(`ride:${rideId}`);
+  });
 
   socket.on("disconnect", () => {
     totalConnectedStudents = Math.max(0, totalConnectedStudents - 1);
@@ -125,17 +174,95 @@ const Booking = require("./models/Booking");
 
 const cleanupOldRides = async () => {
   try {
-    // Regular driver rides - keep for 12 hours
+    // Activate scheduled rides whose date has arrived
+    const now = new Date();
+    const activatedScheduled = await Ride.updateMany(
+      {
+        status: "scheduled",
+        is_scheduled: true,
+        scheduled_date: { $lte: now },
+      },
+      { $set: { status: "active" } },
+    );
+    if (activatedScheduled.modifiedCount > 0) {
+      console.log(
+        `Activated ${activatedScheduled.modifiedCount} scheduled ride(s)`,
+      );
+    }
+
+    // Auto-create rides from recurring ride templates
+    try {
+      const RecurringRide = require("./models/RecurringRide");
+      const todayDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+      const templates = await RecurringRide.find({
+        is_active: true,
+        days: todayDay,
+      });
+
+      for (const tpl of templates) {
+        // Check if a ride was already created today from this template
+        const todayStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const existingRide = await Ride.findOne({
+          driver_id: tpl.driver_id,
+          from: tpl.from_location,
+          to: tpl.to_location,
+          createdAt: { $gte: todayStart },
+          type: "driver",
+        });
+
+        if (!existingRide) {
+          await Ride.create({
+            driver_id: tpl.driver_id,
+            from: tpl.from_location,
+            to: tpl.to_location,
+            total_seats: tpl.total_seats,
+            departure_time: tpl.departure_time,
+            departure_date: now.toISOString().split("T")[0],
+            type: "driver",
+            status: "active",
+          });
+          console.log(
+            `Auto-created ride from recurring template for driver ${tpl.driver_id}`,
+          );
+        }
+      }
+    } catch (recurringErr) {
+      // Silently skip if RecurringRide model doesn't exist yet
+      if (recurringErr.code !== "MODULE_NOT_FOUND") {
+        console.error("Recurring ride error:", recurringErr.message);
+      }
+    }
+
+    // 3-hour auto-deactivation of student sharing rides
+    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const deactivated = await Ride.updateMany(
+      {
+        type: "student_sharing",
+        status: "active",
+        createdAt: { $lt: threeHoursAgo },
+      },
+      { $set: { status: "completed" } },
+    );
+    if (deactivated.modifiedCount > 0) {
+      console.log(
+        `Auto-deactivated ${deactivated.modifiedCount} student ride(s) older than 3 hours`,
+      );
+    }
+
+    // Regular driver rides - delete completed after 12 hours
     const driverCutoff = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    // Student sharing rides - keep for 7 days (7 * 24 * 60 * 60 * 1000)
+    // Student sharing rides - delete completed after 7 days
     const studentCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // Find all old rides based on their type and cutoff
     const oldRides = await Ride.find({
       status: "completed",
       $or: [
-        { type: { $ne: "student_sharing" }, updatedAt: { $lt: driverCutoff } }, // Driver rides
-        { type: "student_sharing", updatedAt: { $lt: studentCutoff } }, // Student rides
+        { type: { $ne: "student_sharing" }, updatedAt: { $lt: driverCutoff } },
+        { type: "student_sharing", updatedAt: { $lt: studentCutoff } },
       ],
     });
 

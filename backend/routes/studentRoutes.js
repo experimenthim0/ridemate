@@ -15,11 +15,18 @@ const {
   getCreatedRides,
   updateCreatedRide,
   deactivateRideShare,
+  getProfile,
+  updateProfile,
 } = require("../controllers/studentController");
 
 // All routes are protected + student only
 router.use(protect, authorize("student"));
 
+// Profile
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
+
+// Rides
 router.get("/rides", getActiveRides);
 router.get("/ride/:id", getRideDetails);
 router.post("/book/:rideId", bookSeat);

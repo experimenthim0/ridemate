@@ -14,16 +14,6 @@ const getActiveRides = async (req, res) => {
     const { from, to } = req.query;
 
     const query = { status: "active" };
-    // Auto-deactivate rides older than 3 hours
-    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    await Ride.updateMany(
-      {
-        type: "student_sharing",
-        status: "active",
-        createdAt: { $lt: threeHoursAgo },
-      },
-      { $set: { status: "completed" } },
-    );
 
     const rides = await Ride.find(query)
       .populate("driver_id", "name auto_number phone is_active")
@@ -71,6 +61,16 @@ const bookSeat = async (req, res) => {
       return res.status(400).json({ message: "This ride is no longer active" });
     }
 
+    // Bug 1.6: Prevent student from booking their own ride
+    if (
+      ride.student_id &&
+      ride.student_id.toString() === studentId.toString()
+    ) {
+      return res.status(400).json({
+        message: "You cannot book your own ride.",
+      });
+    }
+
     // Check if blocked by this driver
     const isBlocked = await DriverBlockedStudent.findOne({
       driver_id: ride.driver_id,
@@ -101,8 +101,18 @@ const bookSeat = async (req, res) => {
       });
     }
 
-    // Check seat availability
-    if (ride.filled_seats >= ride.total_seats) {
+    // Bug 1.5: Atomic seat increment — prevents race condition
+    const updatedRide = await Ride.findOneAndUpdate(
+      {
+        _id: rideId,
+        status: "active",
+        $expr: { $lt: ["$filled_seats", "$total_seats"] },
+      },
+      { $inc: { filled_seats: 1 } },
+      { new: true },
+    );
+
+    if (!updatedRide) {
       return res
         .status(400)
         .json({ message: "No seats available on this ride" });
@@ -114,16 +124,6 @@ const bookSeat = async (req, res) => {
       student_id: studentId,
       status: "pending",
     });
-
-    // Increment filled seats
-    ride.filled_seats += 1;
-
-    // Auto-complete ride when seats filled
-    if (ride.filled_seats >= ride.total_seats) {
-      // Don't auto-complete, just mark as full — driver can still manage
-    }
-
-    await ride.save();
 
     res.status(201).json({ message: "Seat booked successfully", booking });
   } catch (error) {
@@ -516,7 +516,97 @@ const postRideMessage = async (req, res) => {
     // Populate sender details for the response
     await message.populate("sender_id", "name");
 
+    // Emit real-time message to ride room
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`ride:${rideId}`).emit("newMessage", message);
+    }
+
     res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get student profile
+const getProfile = async (req, res) => {
+  try {
+    const student = await Student.findById(req.user._id).select("-password");
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Get additional stats
+    const [totalBookings, createdRides] = await Promise.all([
+      Booking.countDocuments({ student_id: req.user._id }),
+      Ride.countDocuments({
+        student_id: req.user._id,
+        type: "student_sharing",
+      }),
+    ]);
+
+    res.json({
+      ...student.toObject(),
+      stats: {
+        totalBookings,
+        createdRides,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update student profile
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, email } = req.body;
+    const student = await Student.findById(req.user._id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (name) student.name = name;
+
+    if (phone && phone !== student.phone) {
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).json({ message: "Invalid phone number format" });
+      }
+      const existingPhone = await Student.findOne({
+        phone,
+        _id: { $ne: req.user._id },
+      });
+      if (existingPhone) {
+        return res.status(400).json({ message: "Phone number already in use" });
+      }
+      student.phone = phone;
+    }
+
+    if (email && email !== student.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format" });
+      }
+      const existingEmail = await Student.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: req.user._id },
+      });
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      student.email = email;
+    }
+
+    await student.save();
+    res.json({
+      message: "Profile updated",
+      student: {
+        name: student.name,
+        phone: student.phone,
+        email: student.email,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -536,4 +626,6 @@ module.exports = {
   getCreatedRides,
   updateCreatedRide,
   deactivateRideShare,
+  getProfile,
+  updateProfile,
 };

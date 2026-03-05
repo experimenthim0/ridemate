@@ -1,10 +1,8 @@
-import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { io } from "socket.io-client";
 
 // Pages
 import Home from "./pages/Home";
@@ -17,6 +15,8 @@ import DriverDashboard from "./pages/DriverDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import RideDetails from "./pages/RideDetails";
 import DriverProfile from "./pages/DriverProfile";
+import StudentProfile from "./pages/StudentProfile"; // NEW
+import RideRequests from "./pages/RideRequests"; // NEW
 import Complaints from "./pages/Complaints";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
@@ -24,16 +24,6 @@ import DriverConsent from "./pages/DriverConsent";
 import NotFound from "./pages/NotFound";
 
 function App() {
-  useEffect(() => {
-    // Connect to the socket server
-    const socketURL = import.meta.env.VITE_API_URL || "";
-    const socket = io(socketURL);
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
@@ -60,6 +50,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["student"]}>
                     <StudentDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student-profile"
+                element={
+                  <ProtectedRoute allowedRoles={["student"]}>
+                    <StudentProfile />
                   </ProtectedRoute>
                 }
               />
@@ -98,6 +96,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={["student", "driver"]}>
                     <Complaints />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ride-requests"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "driver"]}>
+                    <RideRequests />
                   </ProtectedRoute>
                 }
               />

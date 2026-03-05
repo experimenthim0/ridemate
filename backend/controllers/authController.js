@@ -16,11 +16,33 @@ const studentRegister = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // Validate phone number format (Indian 10-digit)
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        message:
+          "Invalid phone number. Must be a valid 10-digit Indian number.",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
+
+    // Check for existing phone
     const existingStudent = await Student.findOne({ phone });
     if (existingStudent) {
       return res
         .status(400)
         .json({ message: "Phone number already registered" });
+    }
+
+    // Check for existing email
+    const existingEmail = await Student.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already registered" });
     }
 
     const student = await Student.create({ name, phone, email, password });
@@ -55,12 +77,10 @@ const studentLogin = async (req, res) => {
     }
 
     if (student.is_globally_blocked) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Your account has been blocked due to multiple no-shows. Contact admin.",
-        });
+      return res.status(403).json({
+        message:
+          "Your account has been blocked due to multiple no-shows. Contact admin.",
+      });
     }
 
     res.json({
@@ -149,10 +169,58 @@ const getMe = async (req, res) => {
   res.json({ user: req.user, role: req.userRole });
 };
 
+// Change password (works for both student and driver)
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const role = req.userRole;
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Current password and new password are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters" });
+    }
+
+    let user;
+    if (role === "student") {
+      user = await Student.findById(req.user._id);
+    } else if (role === "driver") {
+      user = await Driver.findById(req.user._id);
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Password change not supported for this role" });
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   studentRegister,
   studentLogin,
   driverLogin,
   adminLogin,
   getMe,
+  changePassword,
 };

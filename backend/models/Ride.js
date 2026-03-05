@@ -45,8 +45,16 @@ const rideSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "completed"],
+      enum: ["active", "completed", "scheduled"],
       default: "active",
+    },
+    is_scheduled: {
+      type: Boolean,
+      default: false,
+    },
+    scheduled_date: {
+      type: Date,
+      default: null,
     },
     departure_time: {
       type: String,

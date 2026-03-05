@@ -7,6 +7,7 @@ const {
   driverLogin,
   adminLogin,
   getMe,
+  changePassword,
 } = require("../controllers/authController");
 
 // Public routes
@@ -15,7 +16,8 @@ router.post("/student/login", studentLogin);
 router.post("/driver/login", driverLogin);
 router.post("/admin/login", adminLogin);
 
-// Protected route
+// Protected routes
 router.get("/me", protect, getMe);
+router.put("/change-password", protect, changePassword);
 
 module.exports = router;

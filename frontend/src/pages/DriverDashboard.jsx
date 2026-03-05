@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { LOCATIONS } from "../constants/locations";
 import API from "../api";
 import Loader from "../components/Loader";
+import ChatModal from "../components/ChatModal";
+import { useAuth } from "../context/AuthContext";
 
 const DriverDashboard = () => {
+  const { user } = useAuth();
   const [rides, setRides] = useState([]);
   const [activeTab, setActiveTab] = useState("rides");
   const [loading, setLoading] = useState(true);
@@ -21,6 +24,18 @@ const DriverDashboard = () => {
   const [blocked, setBlocked] = useState([]);
   const [editingTime, setEditingTime] = useState(null);
   const [newTime, setNewTime] = useState("");
+  const [chatRideId, setChatRideId] = useState(null);
+
+  // Recurring Rides
+  const [recurringRides, setRecurringRides] = useState([]);
+  const [recurringForm, setRecurringForm] = useState({
+    from_location: "",
+    to_location: "",
+    total_seats: 3,
+    departure_time: "",
+    days: [],
+  });
+  const [showRecurringForm, setShowRecurringForm] = useState(false);
 
   const fetchRides = async () => {
     try {
@@ -42,11 +57,20 @@ const DriverDashboard = () => {
 
   useEffect(() => {
     const load = async () => {
-      await Promise.all([fetchRides(), fetchBlocked()]);
+      await Promise.all([fetchRides(), fetchBlocked(), fetchRecurringRides()]);
       setLoading(false);
     };
     load();
   }, []);
+
+  const fetchRecurringRides = async () => {
+    try {
+      const { data } = await API.get("/driver/recurring-rides");
+      setRecurringRides(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const flash = (message) => {
     setMsg(message);
@@ -65,6 +89,7 @@ const DriverDashboard = () => {
         total_seats: 3,
         departure_time: "",
         departure_date: "",
+        scheduled_date: "",
       });
       await fetchRides();
     } catch (err) {
@@ -170,6 +195,39 @@ const DriverDashboard = () => {
     }
   };
 
+  const handleCreateRecurring = async (e) => {
+    e.preventDefault();
+    try {
+      if (recurringForm.days.length === 0) {
+        return flash("Select at least one day");
+      }
+      await API.post("/driver/recurring-rides", recurringForm);
+      flash("Recurring ride created!");
+      setShowRecurringForm(false);
+      setRecurringForm({
+        from_location: "",
+        to_location: "",
+        total_seats: 3,
+        departure_time: "",
+        days: [],
+      });
+      await fetchRecurringRides();
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed to create recurring ride");
+    }
+  };
+
+  const handleDeleteRecurring = async (id) => {
+    if (!confirm("Delete this recurring ride?")) return;
+    try {
+      await API.delete(`/driver/recurring-rides/${id}`);
+      flash("Deleted");
+      await fetchRecurringRides();
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed to delete");
+    }
+  };
+
   const statusLabel = {
     pending: "Pending",
     pending_confirmation: "Paid — Verify",
@@ -177,6 +235,8 @@ const DriverDashboard = () => {
     cancelled: "Cancelled",
     no_show: "No Show",
   };
+
+  const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   if (loading) return <Loader text="Loading dashboard..." />;
 
@@ -208,6 +268,12 @@ const DriverDashboard = () => {
           className={`px-5 py-2.5 rounded-xl font-medium text-sm cursor-pointer border-none transition-colors ${activeTab === "blocked" ? "bg-primary text-auto-black" : "bg-white text-gray-600 hover:bg-gray-100"}`}
         >
           <i className="ri-forbid-line mr-1"></i>Blocked ({blocked.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("recurring")}
+          className={`px-5 py-2.5 rounded-xl font-medium text-sm cursor-pointer border-none transition-colors ${activeTab === "recurring" ? "bg-primary text-auto-black" : "bg-white text-gray-600 hover:bg-gray-100"}`}
+        >
+          <i className="ri-repeat-line mr-1"></i>Recurring
         </button>
       </div>
 
@@ -311,19 +377,23 @@ const DriverDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date
+                        Schedule Date (Optional)
                       </label>
                       <input
                         type="date"
-                        value={rideForm.departure_date}
+                        min={new Date().toISOString().split("T")[0]}
+                        value={rideForm.scheduled_date || ""}
                         onChange={(e) =>
                           setRideForm({
                             ...rideForm,
-                            departure_date: e.target.value,
+                            scheduled_date: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full px-4 py-2.5 bg-primary/5 border border-primary/20 rounded-xl outline-none focus:ring-2 focus:ring-primary"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        If set, ride will auto-activate on this date.
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -412,6 +482,15 @@ const DriverDashboard = () => {
                     >
                       <i className="ri-group-line mr-1"></i>Bookings
                     </button>
+
+                    {["active", "scheduled"].includes(ride.status) && (
+                      <button
+                        onClick={() => setChatRideId(ride._id)}
+                        className="bg-primary hover:bg-primary-dark text-gray-900 px-4 py-2 rounded-xl text-sm font-bold cursor-pointer border-none transition-colors"
+                      >
+                        <i className="ri-chat-3-fill mr-1"></i>Chat
+                      </button>
+                    )}
 
                     {/* Fill/Unfill seat buttons for active rides */}
                     {ride.status === "active" && (
@@ -589,6 +668,207 @@ const DriverDashboard = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Recurring Rides Tab */}
+      {activeTab === "recurring" && (
+        <div>
+          <div className="mb-6 flex justify-between items-center">
+            <h2 className="text-xl font-bold font-(--font-heading)">
+              Recurring Rides
+            </h2>
+            <button
+              onClick={() => setShowRecurringForm(!showRecurringForm)}
+              className="bg-primary text-auto-black px-4 py-2 rounded-xl font-bold cursor-pointer border-none"
+            >
+              {showRecurringForm ? "Cancel" : "➕ Create Template"}
+            </button>
+          </div>
+
+          {showRecurringForm && (
+            <form
+              onSubmit={handleCreateRecurring}
+              className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100"
+            >
+              <h3 className="font-bold mb-4 font-(--font-heading)">
+                New Recurring Ride
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    From
+                  </label>
+                  <select
+                    required
+                    value={recurringForm.from_location}
+                    onChange={(e) =>
+                      setRecurringForm({
+                        ...recurringForm,
+                        from_location: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border rounded-xl outline-none"
+                  >
+                    <option value="">Select pickup</option>
+                    {LOCATIONS.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">To</label>
+                  <select
+                    required
+                    value={recurringForm.to_location}
+                    onChange={(e) =>
+                      setRecurringForm({
+                        ...recurringForm,
+                        to_location: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border rounded-xl outline-none"
+                  >
+                    <option value="">Select destination</option>
+                    {LOCATIONS.filter(
+                      (l) => l !== recurringForm.from_location,
+                    ).map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Total Seats
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={recurringForm.total_seats}
+                    onChange={(e) =>
+                      setRecurringForm({
+                        ...recurringForm,
+                        total_seats: Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-3 py-2 border rounded-xl outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Departure Time
+                  </label>
+                  <input
+                    required
+                    type="time"
+                    value={recurringForm.departure_time}
+                    onChange={(e) =>
+                      setRecurringForm({
+                        ...recurringForm,
+                        departure_time: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border rounded-xl outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-gray-600 mb-2">
+                    Days of Week
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS_OF_WEEK.map((day, ix) => (
+                      <button
+                        key={ix}
+                        type="button"
+                        onClick={() => {
+                          const days = recurringForm.days.includes(ix)
+                            ? recurringForm.days.filter((d) => d !== ix)
+                            : [...recurringForm.days, ix];
+                          setRecurringForm({ ...recurringForm, days });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-none cursor-pointer ${recurringForm.days.includes(ix) ? "bg-primary text-gray-900" : "bg-gray-100 text-gray-600"}`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="mt-4 bg-gray-900 text-white px-6 py-2 rounded-xl font-bold w-full cursor-pointer border-none"
+              >
+                Save Template
+              </button>
+            </form>
+          )}
+
+          {recurringRides.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl text-gray-500">
+              No recurring rides set up.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recurringRides.map((ride) => (
+                <div
+                  key={ride._id}
+                  className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                >
+                  <div>
+                    <div className="flex block items-center gap-2 mb-2">
+                      <span className="font-bold bg-gray-50 px-2 py-1 rounded">
+                        {ride.from_location}
+                      </span>
+                      <i className="ri-arrow-right-line text-gray-400"></i>
+                      <span className="font-bold bg-gray-50 px-2 py-1 rounded">
+                        {ride.to_location}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
+                      <span className="flex items-center gap-1">
+                        <i className="ri-group-line"></i> {ride.total_seats}{" "}
+                        seats
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <i className="ri-time-line"></i> {ride.departure_time}
+                      </span>
+                    </div>
+                    <div className="flex gap-1 flex-wrap">
+                      {ride.days.map((d) => (
+                        <span
+                          key={d}
+                          className="bg-primary/20 text-primary-dark text-xs font-bold px-2 py-1 rounded"
+                        >
+                          {DAYS_OF_WEEK[d]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteRecurring(ride._id)}
+                    className="bg-error/10 text-error hover:bg-error hover:text-white px-4 py-2 rounded-xl text-sm font-bold border-none cursor-pointer transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {chatRideId && (
+        <ChatModal
+          rideId={chatRideId}
+          onClose={() => setChatRideId(null)}
+          currentUserRole="driver"
+          currentUserId={user?._id}
+        />
       )}
     </div>
   );

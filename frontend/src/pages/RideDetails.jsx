@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import API from "../api";
 import Loader from "../components/Loader";
-import RideChat from "../components/RideChat";
+import ChatModal from "../components/ChatModal";
 
 const RideDetails = () => {
   const { id } = useParams();
@@ -14,6 +14,7 @@ const RideDetails = () => {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [hasAccess, setHasAccess] = useState(false); // Determines chat access
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     const fetchRide = async () => {
@@ -298,9 +299,36 @@ const RideDetails = () => {
         )}
       </div>
 
-      {/* Render Chat Component using the hasAccess state! */}
-       <RideChat rideId={ride._id} currentUserId={user?._id} canChat={hasAccess} />
+        {/* Chat Access Info or Button */}
+        <div className="mt-4">
+          {hasAccess ? (
+            <button
+              onClick={() => setShowChat(true)}
+              className="w-full bg-info hover:bg-info-dark text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+            >
+              <i className="ri-chat-3-fill text-xl"></i>
+              Open Ride Chat (Real-time)
+            </button>
+          ) : user ? (
+            <div className="bg-gray-50 rounded-2xl p-6 text-center text-gray-400 text-sm border border-gray-200">
+              <i className="ri-lock-line text-2xl mb-2 block"></i>
+              Chat is only available to booked riders and the ride creator.
+            </div>
+          ) : null}
+        </div>
+    
+
+      {showChat && (
+        <ChatModal
+          rideId={ride._id}
+          onClose={() => setShowChat(false)}
+          currentUserRole={role}
+          currentUserId={user?._id}
+        />
+      )}
+    
     </div>
+   
   );
 };
 

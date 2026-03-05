@@ -18,6 +18,9 @@ const {
   updateRideTime,
   getRideMessages,
   postRideMessage,
+  createRecurringRide,
+  getRecurringRides,
+  deleteRecurringRide,
 } = require("../controllers/driverController");
 
 // All routes are protected + driver only
@@ -39,5 +42,10 @@ router.delete("/block/:studentId", unblockStudent);
 router.get("/blocked", getBlockedStudents);
 router.get("/rides/:rideId/messages", getRideMessages);
 router.post("/rides/:rideId/messages", postRideMessage);
+
+// Recurring rides
+router.post("/recurring-rides", createRecurringRide);
+router.get("/recurring-rides", getRecurringRides);
+router.delete("/recurring-rides/:id", deleteRecurringRide);
 
 module.exports = router;

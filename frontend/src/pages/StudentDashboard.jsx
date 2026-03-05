@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { LOCATIONS } from "../constants/locations";
 import API from "../api";
 import Loader from "../components/Loader";
+import ChatModal from "../components/ChatModal";
+import { useAuth } from "../context/AuthContext";
 
 const StudentDashboard = () => {
+  const { user } = useAuth();
   const [rides, setRides] = useState([]);
   const [createdRides, setCreatedRides] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -25,6 +28,8 @@ const StudentDashboard = () => {
     departure_time: "",
     departure_date: "",
   });
+
+  const [chatRideId, setChatRideId] = useState(null);
 
   const fetchRides = async () => {
     try {
@@ -241,7 +246,13 @@ const StudentDashboard = () => {
 
           {rides.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl">
-              <div className="flex justify-center items-center mb-3"><img src="/icons8-auto-rickshaw-94.png" alt="" className="w-20 h-20"/></div>
+              <div className="flex justify-center items-center mb-3">
+                <img
+                  src="/icons8-auto-rickshaw-94.png"
+                  alt=""
+                  className="w-20 h-20"
+                />
+              </div>
               <p className="text-gray-500">No active rides available</p>
             </div>
           ) : (
@@ -428,33 +439,45 @@ const StudentDashboard = () => {
 
                   <div className="flex gap-2 flex-wrap">
                     {booking.status === "pending" && (
-                      <>
+                      <div className="w-full">
                         <Link
                           to={`/ride/${booking.ride_id?._id}`}
-                          className="bg-info hover:bg-info-dark text-white px-4 py-2 rounded-xl text-sm font-medium no-underline transition-colors"
+                          className="bg-info hover:bg-info-dark text-white px-4 py-2 rounded-xl text-sm font-medium no-underline transition-colors block text-center mt-2"
                         >
                           <i className="ri-qr-code-line mr-1"></i>Pay via QR
                         </Link>
-                        <button
-                          onClick={() => handleMarkPaid(booking._id)}
-                          className="bg-success hover:bg-success-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
-                        >
-                          <i className="ri-check-line mr-1"></i>I Have Paid
-                        </button>
-                        <button
-                          onClick={() => handleCancel(booking._id)}
-                          className="bg-error hover:bg-error-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </>
+                        <div className="flex gap-2 mt-2 w-full">
+                          <button
+                            onClick={() => handleMarkPaid(booking._id)}
+                            className="flex-1 bg-success hover:bg-success-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
+                          >
+                            <i className="ri-check-line mr-1"></i>I Have Paid
+                          </button>
+                          <button
+                            onClick={() => handleCancel(booking._id)}
+                            className="flex-1 bg-error hover:bg-error-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
                     )}
                     {booking.status === "pending_confirmation" && (
                       <button
                         onClick={() => handleCancel(booking._id)}
-                        className="bg-error hover:bg-error-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors"
+                        className="bg-error hover:bg-error-dark text-white px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors w-full mt-2"
                       >
                         Cancel
+                      </button>
+                    )}
+                    {["pending", "pending_confirmation", "confirmed"].includes(
+                      booking.status,
+                    ) && (
+                      <button
+                        onClick={() => setChatRideId(booking.ride_id?._id)}
+                        className="bg-primary text-black px-4 py-2 rounded-xl text-sm font-bold cursor-pointer border-none hover:bg-primary-dark transition-colors w-full mt-2"
+                      >
+                        <i className="ri-chat-3-fill mr-1"></i>Ride Chat
                       </button>
                     )}
                   </div>
@@ -640,7 +663,7 @@ const StudentDashboard = () => {
                     </div>
 
                     {r.status === "active" && editingRideId !== r._id && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap mt-2">
                         <button
                           onClick={() => {
                             setEditingRideId(r._id);
@@ -649,13 +672,19 @@ const StudentDashboard = () => {
                               departure_date: r.departure_date || "",
                             });
                           }}
-                          className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
+                          className="flex-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
                         >
-                          Edit Time/Date
+                          Edit Time
+                        </button>
+                        <button
+                          onClick={() => setChatRideId(r._id)}
+                          className="flex-1 text-sm bg-primary hover:bg-primary-dark text-gray-900 px-4 py-1.5 rounded-lg font-bold transition-colors cursor-pointer border-none"
+                        >
+                          <i className="ri-chat-3-fill mr-1"></i>Chat
                         </button>
                         <button
                           onClick={() => handleDeactivateRide(r._id)}
-                          className="text-sm bg-red-100 hover:bg-red-200 text-red-600 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
+                          className="flex-1 text-sm bg-red-100 hover:bg-red-200 text-red-600 px-4 py-1.5 rounded-lg font-medium transition-colors cursor-pointer border-none"
                         >
                           Deactivate
                         </button>
@@ -724,6 +753,15 @@ const StudentDashboard = () => {
             )}
           </div>
         </div>
+      )}
+
+      {chatRideId && (
+        <ChatModal
+          rideId={chatRideId}
+          onClose={() => setChatRideId(null)}
+          currentUserRole="student"
+          currentUserId={user?._id}
+        />
       )}
     </div>
   );

@@ -11,23 +11,26 @@ connectDB();
 
 const app = express();
 
+// Trust proxy for Render/reverse proxies
+app.set("trust proxy", 1);
+
 // Bug 1.12: Rate limiting
 const rateLimit = require("express-rate-limit");
 
-// General rate limit — 100 requests per 15 minutes per IP
+// General rate limit — 500 requests per 15 minutes per IP
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   skip: (req) => process.env.NODE_ENV !== "production",
   message: { message: "Too many requests, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Strict rate limit for auth routes — 10 requests per 15 minutes per IP
+// Strict rate limit for auth routes — 100 requests per 15 minutes per IP
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 100,
   skip: (req) => process.env.NODE_ENV !== "production",
   message: {
     message:

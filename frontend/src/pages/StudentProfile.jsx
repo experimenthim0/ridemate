@@ -10,6 +10,13 @@ const StudentProfile = () => {
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState("success");
 
+ 
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setIsOpen(false);
+  };
+
   // Password change
   const [showPwChange, setShowPwChange] = useState(false);
   const [pwForm, setPwForm] = useState({
@@ -268,6 +275,13 @@ const StudentProfile = () => {
             </button>
           )}
         </div>
+
+        <button
+                onClick={() => handleLogout()}
+                className="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-bold cursor-pointer border-none"
+              >
+               Logout
+              </button>
 
         {/* Account Status */}
         {profile.is_globally_blocked && (

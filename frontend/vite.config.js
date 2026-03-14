@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: "RideMate - College Ridesharing",
         short_name: "RideMate",
-        description: "RideMate is the ultimate college ridesharing platform. Connect with fellow students, find safe and reliable rides, and save money on your daily commute. Features include real-time tracking, secure chat, and student-verified profiles.",
+        description: "RideMate is the ultimate college ridesharing platform. Connect with fellow students and college authorized Auto Drivers, find safe and reliable rides, and save money on your daily commute. Features include real-time tracking, secure chat, and student-verified profiles.",
         theme_color: "#000000",
         background_color: "#000000",
         display: "standalone",
@@ -36,17 +36,17 @@ export default defineConfig({
         ],
         screenshots: [
           {
-            src: "/screenshot.png",
+            src: "/screenshot.jpeg",
             sizes: "1024x1024",
-            type: "image/png",
+            type: "image/jpeg",
             form_factor: "wide",
-            label: "RideMate Dashboard"
+            label: "RideMate HomePage"
           },
           {
-            src: "/screenshot.png",
+            src: "/s1.jpeg",
             sizes: "1024x1024",
-            type: "image/png",
-            label: "RideMate Dashboard"
+            type: "image/jpeg",
+            label: "Drivers Contact Info"
           }
         ]
       },

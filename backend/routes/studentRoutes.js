@@ -25,6 +25,7 @@ router.use(protect, authorize("student"));
 // Profile
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
+router.post("/logout", logout);
 
 // Rides
 router.get("/rides", getActiveRides);

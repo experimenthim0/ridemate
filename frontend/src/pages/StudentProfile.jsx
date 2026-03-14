@@ -87,7 +87,7 @@ const StudentProfile = () => {
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6 font-[var(--font-heading)]">
-        👤 Student Profile
+        Student Profile
       </h1>
 
       {msg && (
@@ -102,7 +102,7 @@ const StudentProfile = () => {
         {/* Avatar + Name */}
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-3xl">
-            🎓
+            {profile.name.charAt(0).toUpperCase()}
           </div>
           <div>
             <h2 className="text-xl font-bold font-[var(--font-heading)]">
@@ -205,7 +205,7 @@ const StudentProfile = () => {
                 onClick={() => setEditing(true)}
                 className="w-full bg-primary text-gray-900 py-2 rounded-xl text-sm font-bold cursor-pointer border-none"
               >
-                ✏️ Edit Profile
+                 Edit Profile
               </button>
             </>
           )}
@@ -216,7 +216,7 @@ const StudentProfile = () => {
           {showPwChange ? (
             <div className="space-y-3">
               <h3 className="font-bold text-sm font-[var(--font-heading)]">
-                🔒 Change Password
+                 Change Password
               </h3>
               <input
                 type="password"
@@ -272,14 +272,14 @@ const StudentProfile = () => {
               onClick={() => setShowPwChange(true)}
               className="w-full bg-gray-100 text-gray-700 py-2 rounded-xl text-sm font-medium cursor-pointer border-none hover:bg-gray-200"
             >
-              🔒 Change Password
+               Change Password
             </button>
           )}
         </div>
 
         <button
                 onClick={() => handleLogout()}
-                className="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-bold cursor-pointer border-none"
+                className="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-bold cursor-pointer border-none mt-4"
               >
                Logout
               </button>

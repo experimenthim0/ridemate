@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import API from "../api";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/AuthContext";
 
 const StudentProfile = () => {
   const [profile, setProfile] = useState(null);
+   const { user, role, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState("success");
 
- 
-  const handleLogout = () => {
+ const handleLogout = () => {
     logout();
     navigate("/");
     setIsOpen(false);

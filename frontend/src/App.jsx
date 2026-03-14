@@ -1,8 +1,47 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import io from "socket.io-client";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import BottomNav from "./components/BottomNav";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+function GlobalSocketListener() {
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    // Connect to the Socket.io server using env var, or fallback
+    const newSocket = io(import.meta.env.VITE_API_URL || "http://localhost:5000");
+    
+    newSocket.on("admin_notification", (data) => {
+      setToast(data);
+      if (window.navigator?.vibrate) {
+        window.navigator.vibrate([200, 100, 200]);
+      }
+      setTimeout(() => setToast(null), 8000); // hide after 8s
+    });
+
+    return () => newSocket.close();
+  }, []);
+
+  if (!toast) return null;
+
+  return (
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-4 z-9999 w-[90%] md:w-auto min-w-[300px] bg-white border-l-4 border-primary p-4 rounded-xl shadow-2xl flex items-start gap-3 transition-all duration-300">
+      <div className="text-primary text-2xl mt-1">
+        <i className="ri-notification-3-fill"></i>
+      </div>
+      <div className="flex-1">
+        <h4 className="font-bold text-gray-800">{toast.title}</h4>
+        <p className="text-sm text-gray-600 mt-1">{toast.message}</p>
+      </div>
+      <button onClick={() => setToast(null)} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer">
+        <i className="ri-close-line text-lg"></i>
+      </button>
+    </div>
+  );
+}
 
 // Pages
 import Home from "./pages/Home";
@@ -21,13 +60,16 @@ import Complaints from "./pages/Complaints";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import DriverConsent from "./pages/DriverConsent";
+import About from "./pages/About"; // NEW
 import NotFound from "./pages/NotFound";
+import Minifooter from "./components/Minifooter";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen flex flex-col">
+        <GlobalSocketListener />
+        <div className="min-h-screen flex flex-col pb-16 md:pb-0">
           <Navbar />
           <main className="flex-1">
             <Routes>
@@ -40,6 +82,7 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/driver-consent" element={<DriverConsent />} />
+              <Route path="/about" element={<About />} />
 
               {/* Ride Details - Public */}
               <Route path="/ride/:id" element={<RideDetails />} />
@@ -112,7 +155,9 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-          <Footer />
+          {/* <Footer /> */}
+          <Minifooter />
+          <BottomNav />
         </div>
       </Router>
     </AuthProvider>

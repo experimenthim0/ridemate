@@ -29,6 +29,7 @@ const AdminDashboard = () => {
     password: "",
     upi_id: "",
   });
+  const [notifForm, setNotifForm] = useState({ title: "", message: "" });
 
   const fetchAll = async () => {
     try {
@@ -165,6 +166,17 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    try {
+      const { data } = await API.post("/admin/notify", notifForm);
+      flash(data.message || "Notification sent!");
+      setNotifForm({ title: "", message: "" });
+    } catch (err) {
+      flash(err.response?.data?.message || "Failed to send notification");
+    }
+  };
+
   if (loading) return <Loader text="Loading admin panel..." />;
 
   return (
@@ -281,18 +293,49 @@ const AdminDashboard = () => {
 
       {/* Stats Actions Section */}
       {activeTab === "stats" && (
-        <div className="mt-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <i className="ri-settings-3-line text-primary"></i> System
-            Maintenance
-          </h3>
-          <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={handleCleanUpBookings}
-              className="bg-error/10 hover:bg-error/20 text-error px-5 py-2.5 rounded-xl font-semibold border-none cursor-pointer transition-colors flex items-center gap-2"
-            >
-              <i className="ri-delete-bin-line"></i> Delete Cancelled Bookings
-            </button>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <i className="ri-settings-3-line text-primary"></i> System
+              Maintenance
+            </h3>
+            <div className="flex gap-4 flex-wrap">
+              <button
+                onClick={handleCleanUpBookings}
+                className="bg-error/10 hover:bg-error/20 text-error px-5 py-2.5 rounded-xl font-semibold border-none cursor-pointer transition-colors flex items-center gap-2"
+              >
+                <i className="ri-delete-bin-line"></i> Delete Cancelled Bookings
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <i className="ri-notification-3-line text-primary"></i> Broadcast Notification
+            </h3>
+            <form onSubmit={handleSendNotification} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Notification Title..."
+                value={notifForm.title}
+                onChange={(e) => setNotifForm({...notifForm, title: e.target.value})}
+                required
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
+              />
+              <textarea
+                placeholder="Type message to broadcast to all online users..."
+                value={notifForm.message}
+                onChange={(e) => setNotifForm({...notifForm, message: e.target.value})}
+                required
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm h-20 resize-none"
+              ></textarea>
+              <button 
+                type="submit"
+                className="bg-primary hover:bg-primary-dark text-auto-black px-5 py-2.5 rounded-xl font-bold border-none cursor-pointer transition-colors w-full flex items-center justify-center gap-2"
+              >
+                <i className="ri-send-plane-fill"></i> Send Broadcast
+              </button>
+            </form>
           </div>
         </div>
       )}

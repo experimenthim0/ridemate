@@ -79,10 +79,10 @@ const ChatModal = ({ rideId, onClose, currentUserRole, currentUserId }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-gray-50 w-full sm:max-w-md h-[85vh] sm:h-[600px] rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden transform transition-all animate-slide-up sm:animate-fade-in relative">
+    <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center bg-white backdrop-blur-sm p-0 sm:p-4">
+      <div className="bg-gray-50 w-full sm:max-w-md h-[82vh] sm:h-[500px] rounded-t-2xl sm:rounded-2xl  flex flex-col overflow-hidden transform transition-all animate-slide-up sm:animate-fade-in relative mb-20 ">
         {/* Header */}
-        <div className="bg-white px-4 py-3 border-b flex justify-between items-center shrink-0 shadow-sm z-10">
+        <div className="bg-white px-4 py-3 border-b flex justify-between items-center shrink-0 shadow-sm z-10  ">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20 text-primary-dark flex items-center justify-center font-bold text-lg">
               <i className="ri-chat-3-line"></i>

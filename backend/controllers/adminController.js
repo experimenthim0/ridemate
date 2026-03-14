@@ -313,6 +313,26 @@ const getSuggestions = async (req, res) => {
   }
 };
 
+// Send Global Notification
+const sendGlobalNotification = async (req, res) => {
+  try {
+    const { title, message } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ message: "Title and message are required" });
+    }
+    
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("admin_notification", { title, message, time: new Date() });
+      res.json({ message: "Notification sent to all online users successfully" });
+    } else {
+      res.status(500).json({ message: "Socket server not initialized" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   addDriver,
   getDrivers,
@@ -328,4 +348,5 @@ module.exports = {
   deactivateRideAdmin,
   deleteCancelledBookings,
   getSuggestions,
+  sendGlobalNotification,
 };

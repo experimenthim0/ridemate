@@ -14,8 +14,10 @@ const {
   getDashboardStats,
   getFakeRideReports,
   deactivateRideAdmin,
+
   deleteCancelledBookings,
   getSuggestions,
+  sendGlobalNotification,
 } = require("../controllers/adminController");
 
 // All routes are protected + admin only
@@ -35,5 +37,6 @@ router.get("/fake-ride-reports", getFakeRideReports);
 router.get("/complaints", getComplaints);
 router.put("/complaints/:id", resolveComplaint);
 router.get("/suggestions", getSuggestions);
+router.post("/notify", sendGlobalNotification);
 
 module.exports = router;

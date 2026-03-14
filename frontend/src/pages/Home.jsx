@@ -6,6 +6,7 @@ import API from "../api";
 import axios from "axios";
 import Loader from "../components/Loader";
 import Authorised from "./Authorised";
+import InstallButton from "../components/InstallButton";
 
 const Home = () => {
   const { user, role } = useAuth();
@@ -521,8 +522,8 @@ const Home = () => {
               </div>
               <h3 className="text-lg font-bold mb-2">Find a Ride</h3>
               <p className="text-gray-500 text-sm">
-                Search by pickup and destination. See auto rides and
-                student-shared rides together.
+                Search by pickup and destination. See auto rides,
+                student-shared rides, and requests for a ride together.
               </p>
             </div>
             <div className="text-center p-6  rounded-2xl">
@@ -620,7 +621,7 @@ const Home = () => {
               </span>
             </div>
 
-            {/* Update Ride */}
+            {/* Ride Requests */}
             <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
               <div className="text-3xl mb-3">
                 <img
@@ -629,18 +630,22 @@ const Home = () => {
                   className="w-20 h-16"
                 />
               </div>
-              <h3 className="font-bold text-gray-800 mb-1">Manage Your Ride</h3>
+              <h3 className="font-bold text-gray-800 mb-1">Ride Requests</h3>
               <p className="text-gray-500 text-sm">
-                Edit departure time, seat count, or cancel your posted ride —
-                just like a driver managing a trip in real time.
+                Can't find a ride? Create a request for your destination and let others heading the same way find and join you.
               </p>
               <span className="inline-block mt-3 text-xs font-bold bg-green-500 text-white px-2.5 py-1 rounded-lg">
-                Creator controls
+                Request a ride
               </span>
             </div>
           </div>
         </div>
       </section>
+
+   <section className="mb-10 px-5">
+        <Authorised />
+      </section>
+
 
       {/* Anonymous Suggestion Box */}
       <section className="py-14 bg-white px-5">
@@ -708,11 +713,9 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="mb-10 px-5">
-        <Authorised />
-      </section>
+   
 
-      <section className="px-5">
+      {/* <section className="px-5">
         <div className="max-w-2xl mx-auto mb-6 p-6 bg-red-100 border border-red-100 rounded-xl shadow-sm space-y-4 ">
           <h3 className="flex items-center gap-2 text-lg font-bold text-red-800">
             <i className="ri-alert-line text-red-600"></i>
@@ -739,10 +742,10 @@ const Home = () => {
             </li>
           </ul>
         </div>
-      </section>
+      </section> */}
 
       <section className="w-full py-10 ">
-        <div className="flex justify-center items-center flex-col gap-0 ">
+        <div className="flex justify-center items-center flex-col gap-4">
           <button
             onClick={handleShare}
             className="bg-gradient-to-r from-yellow-400 to-green-600 hover:from-yellow-500 hover:to-green-700 text-black font-semibold text-sm px-4 py-2 rounded-full shadow-md flex items-center transition-transform transform hover:scale-105"
@@ -750,6 +753,11 @@ const Home = () => {
             <i className="ri-share-forward-line mr-2"></i>
             Share & Invite Friends
           </button>
+          
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-gray-500 text-xs font-medium italic">For the best experience, install RideMate as an app!</p>
+            <InstallButton />
+          </div>
         </div>
       </section>
     </div>

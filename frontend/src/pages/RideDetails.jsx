@@ -208,7 +208,7 @@ const RideDetails = () => {
                 <i className="ri-user-smile-line text-warning mr-1"></i>Student
                 (Ride Share)
               </span>
-              <span className="bg-warning text-white px-2 py-0.5 rounded-lg text-xs font-bold">
+              <span className="bg-warning text-green-500 px-2 py-0.5 rounded-lg text-xs font-bold">
                 RIDESHARING
               </span>
             </h3>

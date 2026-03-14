@@ -121,7 +121,7 @@ const RideRequests = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold font-[var(--font-heading)]">
-          ✋ Ride Requests
+          <i className="ri-hand text-2xl "></i> Ride Requests
         </h1>
         {role === "student" && (
           <button

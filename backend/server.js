@@ -18,6 +18,7 @@ const rateLimit = require("express-rate-limit");
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  skip: (req) => process.env.NODE_ENV !== "production",
   message: { message: "Too many requests, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -27,6 +28,7 @@ const generalLimiter = rateLimit({
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
+  skip: (req) => process.env.NODE_ENV !== "production",
   message: {
     message:
       "Too many login/register attempts, please try again after 15 minutes.",
@@ -42,6 +44,8 @@ app.use(
       "https://ridemate.nikhim.me",
       "http://localhost:5173",
       "http://localhost:5174",
+      "http://10.37.30.110:5173",
+      "http://192.168.137.1:5173"
     ],
   }),
 );
@@ -73,6 +77,8 @@ const io = new Server(server, {
       "https://ridemate.nikhim.me",
       "http://localhost:5173",
       "http://localhost:5174",
+      "http://10.37.30.110:5173",
+      "http://192.168.137.1:5173"
     ], // allow all or restrict to your frontend domain in production
     methods: ["GET", "POST"],
   },

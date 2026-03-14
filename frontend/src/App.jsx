@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
 import io from "socket.io-client";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -9,21 +10,42 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function GlobalSocketListener() {
   const [toast, setToast] = useState(null);
+  const { user } = useAuth(); // Need user for individual notifications
 
   useEffect(() => {
     // Connect to the Socket.io server using env var, or fallback
     const newSocket = io(import.meta.env.VITE_API_URL || "http://localhost:5000");
     
-    newSocket.on("admin_notification", (data) => {
+    // Broadcast notifications
+    newSocket.on("new_notification", (data) => {
       setToast(data);
       if (window.navigator?.vibrate) {
         window.navigator.vibrate([200, 100, 200]);
       }
-      setTimeout(() => setToast(null), 8000); // hide after 8s
+      setTimeout(() => setToast(null), 8000);
+    });
+
+    // Individual notifications
+    if (user?._id) {
+      newSocket.on(`new_notification_${user._id}`, (data) => {
+        setToast(data);
+        if (window.navigator?.vibrate) {
+          window.navigator.vibrate([200, 100, 200]);
+        }
+        setTimeout(() => setToast(null), 8000);
+      });
+    }
+
+    // New Ride Request (for bubble)
+    newSocket.on("new_ride_request", (data) => {
+      // Store the timestamp of the new request to show bubble for 15 mins
+      localStorage.setItem("last_ride_request_time", data.createdAt);
+      // Force a custom event to update Navbar/BottomNav
+      window.dispatchEvent(new Event("new_ride_request_arrived"));
     });
 
     return () => newSocket.close();
-  }, []);
+  }, [user]);
 
   if (!toast) return null;
 
@@ -62,15 +84,21 @@ import TermsConditions from "./pages/TermsConditions";
 import DriverConsent from "./pages/DriverConsent";
 import About from "./pages/About"; // NEW
 import NotFound from "./pages/NotFound";
+import Notifications from "./pages/Notifications";
+import AdminNotifications from "./pages/AdminNotifications";
 import Minifooter from "./components/Minifooter";
+import MoreLink from "./pages/MoreLink";
+
+import { NotificationProvider } from "./context/NotificationContext";
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <GlobalSocketListener />
-        <div className="min-h-screen flex flex-col pb-16 md:pb-0">
-          <Navbar />
+      <NotificationProvider>
+        <Router>
+          <GlobalSocketListener />
+          <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+            <Navbar />
           <main className="flex-1">
             <Routes>
               {/* Public Routes */}
@@ -83,6 +111,7 @@ function App() {
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/driver-consent" element={<DriverConsent />} />
               <Route path="/about" element={<About />} />
+              <Route path="/more-links" element={<MoreLink />} />
 
               {/* Ride Details - Public */}
               <Route path="/ride/:id" element={<RideDetails />} />
@@ -132,6 +161,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/notifications"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminNotifications />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected - Any authenticated user */}
               <Route
@@ -150,6 +187,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute allowedRoles={["student", "driver"]}>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
@@ -158,8 +203,9 @@ function App() {
           {/* <Footer /> */}
           <Minifooter />
           <BottomNav />
-        </div>
-      </Router>
+          </div>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

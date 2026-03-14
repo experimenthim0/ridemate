@@ -105,13 +105,17 @@ const Navbar = () => {
           )}
 
           {(role === "student" || role === "driver") && (
-            <Link
-              to="/ride-requests"
-              className="bg-neutral-700 px-3 py-1 rounded-lg text-sm text-primary font-bold"
-            >
-              <i className="ri-question-answer-line mr-1"></i>
-              Requests
-            </Link>
+            <>
+              <NotificationIcon />
+              <Link
+                to="/ride-requests"
+                className="bg-neutral-700 px-3 py-1 rounded-lg text-sm text-primary font-bold relative"
+              >
+                <i className="ri-question-answer-line mr-1"></i>
+                Requests
+                <RideRequestBubble />
+              </Link>
+            </>
           )}
 
           <Link
@@ -255,6 +259,33 @@ const Navbar = () => {
       )}
     </nav>
   );
+};
+
+import { useNotification } from "../context/NotificationContext";
+
+const NotificationIcon = () => {
+    const { unreadCount } = useNotification();
+    return (
+        <Link to="/notifications" className="relative p-1 hover:text-primary transition-colors">
+            <i className="ri-notification-3-line text-xl"></i>
+            {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-black text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-black shadow-sm tracking-tighter">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+            )}
+        </Link>
+    );
+};
+
+const RideRequestBubble = () => {
+    const { showRideRequestBubble } = useNotification();
+    if (!showRideRequestBubble) return null;
+    return (
+        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-black"></span>
+        </span>
+    );
 };
 
 export default Navbar;

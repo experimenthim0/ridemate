@@ -45,6 +45,14 @@ const createRequest = async (req, res) => {
       note: note || "",
     });
 
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("new_ride_request", {
+        _id: request._id,
+        createdAt: request.createdAt,
+      });
+    }
+
     res.status(201).json({ message: "Ride request created", request });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -111,6 +119,21 @@ const respondToRequest = async (req, res) => {
     });
 
     await request.save();
+
+    // Create a notification for the student who made the request
+    const Notification = require("../models/Notification");
+    const notification = await Notification.create({
+      title: "New Response to Your Ride Request",
+      message: `${req.user.name} responded to your request from ${request.from_location} to ${request.to_location}.`,
+      type: "individual",
+      recipient: request.student_id,
+      recipientModel: "Student",
+    });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit(`new_notification_${request.student_id}`, notification);
+    }
 
     res.json({ message: "Response submitted", request });
   } catch (error) {

@@ -142,8 +142,9 @@ function ToCollege() {
 export default function Farecharts() {
   return (
     <div className="min-h-screen  p-6 flex flex-col items-center">
-        <p className="text-black text-2xl font-bold leading-tight">Fare Charts (Provided By College)</p>
-        <a href="https://drive.google.com/file/d/1fVIurkWg8qjzf7mcvreXn2cqSHWu9rIG/view?usp=sharing" target="_blank" className='text-blue-400 p-4'>View the original File</a>
+        <p className="text-black text-2xl font-bold leading-tight text-center">Fare Charts</p>
+        <p className='text-gray-500 text-center'>Note: These are the fares provided by the college. You can negotiate with the driver for a better price.</p>
+        <a href="https://drive.google.com/file/d/1fVIurkWg8qjzf7mcvreXn2cqSHWu9rIG/view?usp=sharing" target="_blank" className='text-blue-400 p-4 underline cursor-pointer hover:text-blue-600 hover:font-bold font-bold' >View the Provided File</a>
       <div className="w-full max-w-3xl space-y-8">
         <FromCollege />
         <ToCollege />

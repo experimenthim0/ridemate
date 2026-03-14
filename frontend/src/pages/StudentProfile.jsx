@@ -278,11 +278,31 @@ const StudentProfile = () => {
         </div>
 
         <button
-                onClick={() => handleLogout()}
-                className="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-bold cursor-pointer border-none mt-4"
-              >
-               Logout
-              </button>
+          onClick={() => handleLogout()}
+          className="w-full bg-red-500 text-white py-2 rounded-xl text-sm font-bold cursor-pointer border-none mt-4"
+        >
+          Logout
+        </button>
+
+        {/* Notifications Shortcut */}
+        {/* <div className="mt-6 pt-6 border-t border-gray-100">
+            <h3 className="text-sm font-bold mb-3 uppercase tracking-widest text-gray-400">Recent Notifications</h3>
+            <button 
+                onClick={() => window.location.href = "/notifications"}
+                className="w-full bg-gray-50 hover:bg-gray-100 p-4 rounded-2xl flex items-center justify-between transition-all group"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/20 text-primary rounded-xl flex items-center justify-center">
+                        <i className="ri-notification-3-line text-xl"></i>
+                    </div>
+                    <div className="text-left">
+                        <span className="block font-bold text-gray-800 text-sm">View All Notifications</span>
+                        <span className="text-xs text-gray-500">Check updates from admin</span>
+                    </div>
+                </div>
+                <i className="ri-arrow-right-s-line text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div> */}
 
         {/* Account Status */}
         {profile.is_globally_blocked && (

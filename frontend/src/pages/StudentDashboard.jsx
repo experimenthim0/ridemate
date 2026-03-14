@@ -6,6 +6,23 @@ import Loader from "../components/Loader";
 import ChatModal from "../components/ChatModal";
 import { useAuth } from "../context/AuthContext";
 
+
+import { useNotification } from "../context/NotificationContext";
+
+const NotificationIcon = () => {
+    const  {unreadCount}  = useNotification();
+    return (
+        <Link to="/notifications" className="relative p-1 hover:text-primary transition-colors">
+            <i className="ri-notification-3-line text-2xl"></i>
+            {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-error text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm tracking-tighter">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+            )}
+        </Link>
+    );
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [rides, setRides] = useState([]);
@@ -174,9 +191,14 @@ const StudentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between">
       <h1 className="text-2xl font-bold mb-6 font-(--font-heading)">
         <i className="ri-dashboard-line mr-2 text-primary"></i>Student Dashboard
       </h1>
+      <div className="px-3 py-1 rounded-lg text-black">
+      <NotificationIcon />
+      </div>
+      </div>
 
       {msg && (
         <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium bg-info/10 text-info flex items-center gap-2">

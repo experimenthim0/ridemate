@@ -309,33 +309,19 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <i className="ri-notification-3-line text-primary"></i> Broadcast Notification
-            </h3>
-            <form onSubmit={handleSendNotification} className="space-y-3">
-              <input
-                type="text"
-                placeholder="Notification Title..."
-                value={notifForm.title}
-                onChange={(e) => setNotifForm({...notifForm, title: e.target.value})}
-                required
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm"
-              />
-              <textarea
-                placeholder="Type message to broadcast to all online users..."
-                value={notifForm.message}
-                onChange={(e) => setNotifForm({...notifForm, message: e.target.value})}
-                required
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm h-20 resize-none"
-              ></textarea>
-              <button 
-                type="submit"
-                className="bg-primary hover:bg-primary-dark text-auto-black px-5 py-2.5 rounded-xl font-bold border-none cursor-pointer transition-colors w-full flex items-center justify-center gap-2"
-              >
-                <i className="ri-send-plane-fill"></i> Send Broadcast
-              </button>
-            </form>
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                <i className="ri-notification-3-line text-primary"></i> Advanced Notifications
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">Send individual or role-targeted notifications with full history.</p>
+            </div>
+            <button
+              onClick={() => window.location.href = "/admin/notifications"}
+              className="bg-auto-black text-white px-5 py-3 rounded-xl font-bold border-none cursor-pointer transition-all hover:bg-neutral-800 flex items-center justify-center gap-2 w-full"
+            >
+              <i className="ri-external-link-line"></i> Manage Notifications
+            </button>
           </div>
         </div>
       )}

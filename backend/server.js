@@ -64,6 +64,7 @@ app.use("/api/student", require("./routes/studentRoutes"));
 app.use("/api/complaints", require("./routes/complaintRoutes"));
 app.use("/api/rides", require("./routes/rideRoutes"));
 app.use("/api/ride-requests", require("./routes/rideRequestRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // Health check
 app.get("/api/health", (req, res) => {

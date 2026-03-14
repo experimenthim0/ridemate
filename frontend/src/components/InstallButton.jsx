@@ -18,7 +18,7 @@ const InstallButton = () => {
     <>
       <button 
         onClick={handleInstallClick} 
-        className="bg-primary text-black font-bold py-2 px-4 rounded-full shadow-lg hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+        className="bg-primary text-black font-bold py-2 px-4 rounded-full  hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
       >
         <i className="ri-download-cloud-2-line text-lg"></i>
         <span>Install App</span>

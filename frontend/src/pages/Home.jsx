@@ -20,7 +20,7 @@ const Home = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
   const [msg, setMsg] = useState("");
-
+const EMAIL_ADDRESS="contact.nikhim@gmail.com"
   const fetchRides = async () => {
     setLoading(true);
     try {
@@ -647,7 +647,7 @@ const Home = () => {
         <Authorised />
       </section>
 
-      <section className="mb-10 px-5">
+      <section className="mb-10">
         <Farecharts />
       </section>
 
@@ -750,7 +750,7 @@ const Home = () => {
         </div>
       </section> */}
 
-      <section className="w-full py-10 ">
+      <section className="w-full py-10 bg-white ">
         <div className="flex justify-center items-center flex-col gap-4">
           <button
             onClick={handleShare}
@@ -760,10 +760,16 @@ const Home = () => {
             Share & Invite Friends
           </button>
           
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 mt-10">
             <p className="text-gray-500 text-xs font-medium italic">For the best experience, install RideMate as an app!</p>
             <InstallButton />
           </div>
+        </div>
+
+
+        <div className="flex flex-col items-center gap-2 mt-10"> 
+          
+          <p className="text-gray-500 text-xs font-medium italic p-5 text-center">If you want to collabrate with me, you can contact me at <a href={`mailto:${EMAIL_ADDRESS}`} className="text-blue-600 font-semibold">{EMAIL_ADDRESS}</a></p>
         </div>
       </section>
     </div>

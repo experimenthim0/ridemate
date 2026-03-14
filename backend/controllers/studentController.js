@@ -638,4 +638,5 @@ module.exports = {
   deactivateRideShare,
   getProfile,
   updateProfile,
+  logout,
 };

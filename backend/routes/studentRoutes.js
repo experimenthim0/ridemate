@@ -17,6 +17,7 @@ const {
   deactivateRideShare,
   getProfile,
   updateProfile,
+  logout,
 } = require("../controllers/studentController");
 
 // All routes are protected + student only

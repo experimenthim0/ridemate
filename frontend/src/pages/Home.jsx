@@ -7,6 +7,7 @@ import axios from "axios";
 import Loader from "../components/Loader";
 import Authorised from "./Authorised";
 import InstallButton from "../components/InstallButton";
+import Farecharts from "./Farecharts";
 
 const Home = () => {
   const { user, role } = useAuth();
@@ -645,6 +646,11 @@ const Home = () => {
    <section className="mb-10 px-5">
         <Authorised />
       </section>
+
+      <section className="mb-10 px-5">
+        <Farecharts />
+      </section>
+
 
 
       {/* Anonymous Suggestion Box */}
